@@ -37,7 +37,19 @@ fullDroughtIUCNdata <- left_join(plantsonIUCN, droughtdata) %>%
   mutate(DroughtDataAvailable = ifelse(is.na(duration_min), 'NotAvailable', 'Available'))
 ```
 
+
 ## Some interesting checks of the data 
+
+Quick look at how much our data represents
+```{r}
+howmuchdatawegot <- ggplot(data=fullDroughtIUCNdata, aes(DroughtDataAvailable, fill = DroughtDataAvailable)) +
+  geom_bar() +
+  scale_fill_manual(name = "DroughtDataAvailable", values = c("#7D5D3A", "#53619E")) +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+plot(howmuchdatawegot)
+```
+
 
 Aquatic plants (and species' "system")
 ```{r}
