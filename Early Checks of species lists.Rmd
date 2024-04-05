@@ -12,9 +12,26 @@ output:
 date: "2024-04-04"
 ---
 
-gg
+## Libraries required
 
 ```{r}
-cxvmnxcmvn
+library(tidyverse)
+library(rredlist)
 ```
+
+## Read in Data
+```{r}
+#data downloaded from the IUCN red list (https://www.iucnredlist.org/search) for all organisms in the "Plantae" Kingdom (~66,000 records) - plants
+plantsonIUCN <- read.csv("Data/Raw Data/assessments.csv")
+taxonomyofplantsonIUCN <- read.csv("Data/Raw Data/taxonomy.csv")
+
+#read in the data that we have spatial data for (and therefore drought data)
+droughtdata <- read.csv("Data/Raw Data/drought_metrics_compile_20240326.csv")
+```
+
+## Look at overlap 
+
+
+
+
 
