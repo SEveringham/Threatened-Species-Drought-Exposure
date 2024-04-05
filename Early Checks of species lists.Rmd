@@ -159,7 +159,9 @@ plot(realms)
 This figure is pretty crazy - I think I need Stu's code or raw spatial data to really tell the coverage geographically
 
 I could give each species a mark (0 or 1) for each category and visualise it this way?
-cc
+
+
+
 
 
 
