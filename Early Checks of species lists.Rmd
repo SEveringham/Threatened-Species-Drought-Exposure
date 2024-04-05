@@ -22,14 +22,77 @@ library(rredlist)
 ## Read in Data
 ```{r}
 #data downloaded from the IUCN red list (https://www.iucnredlist.org/search) for all organisms in the "Plantae" Kingdom (~66,000 records) - plants
-plantsonIUCN <- read.csv("Data/Raw Data/assessments.csv")
+plantsonIUCN <- read.csv("Data/Raw Data/assessments.csv") %>%
+  select(-language, -rationale, -threats, -population, -populationTrend, -range, -useTrade, -conservationActions, -realm, -yearLastSeen, -scopes)
 taxonomyofplantsonIUCN <- read.csv("Data/Raw Data/taxonomy.csv")
 
 #read in the data that we have spatial data for (and therefore drought data)
-droughtdata <- read.csv("Data/Raw Data/drought_metrics_compile_20240326.csv")
+droughtdata <- read.csv("Data/Raw Data/drought_metrics_compile_20240326.csv") %>%
+  rename(scientificName = species_name)
 ```
 
-## Look at overlap 
+## Join data
+```{r}
+fullDroughtIUCNdata <- left_join(plantsonIUCN, droughtdata) %>%
+  mutate(DroughtDataAvailable = ifelse(is.na(duration_min), 'NotAvailable', 'Available'))
+```
+
+## Some interesting checks of the data 
+
+Aquatic plants (and species' "system")
+```{r}
+#Marine Species with Droughtdata
+sum(fullDroughtIUCNdata$DroughtDataAvailable == "Available" & fullDroughtIUCNdata$systems == "Marine", na.rm=TRUE)
+#122 species
+
+#Freshwater species with drought data
+sum(fullDroughtIUCNdata$DroughtDataAvailable == "Available" & fullDroughtIUCNdata$systems == "Freshwater (=Inland waters)", na.rm=TRUE)
+#769! a lot...
+
+#Terrestrial/Freshwater species with drought data
+sum(fullDroughtIUCNdata$DroughtDataAvailable == "Available" & fullDroughtIUCNdata$systems == "Terrestrial|Freshwater (=Inland waters)", na.rm=TRUE)
+#921! a lot...
+
+#Terrestrial/marine species with drought data
+sum(fullDroughtIUCNdata$DroughtDataAvailable == "Available" & fullDroughtIUCNdata$systems == "Terrestrial|Marine", na.rm=TRUE)
+#50
+
+#Terrestrial/Freshwater/Marine species with drought data
+sum(fullDroughtIUCNdata$DroughtDataAvailable == "Available" & fullDroughtIUCNdata$systems == "Terrestrial|Freshwater (=Inland waters)|Marine", na.rm=TRUE)
+#22
+```
+
+Quick bargraphs
+```{r}
+speciessystems <- ggplot(data=fullDroughtIUCNdata, aes(systems, fill = DroughtDataAvailable)) +
+  geom_bar(position= "dodge") +
+  scale_fill_manual(name = "DroughtDataAvailable", values = c("#7D5D3A", "#53619E")) +
+  scale_y_log10() +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+plot(speciessystems)
+```
+
+
+Aquatic plants problems: 
+<br>
+Problem 1) There are "freshwater" plants (769 species) that are included in the IUCN list AND our drought list - some of which ACTUALLY occupy water, some of which don't (grow along streams/rivers etc) and some of which can do both (juvenile in water and adult on land and vice versa) - what to do here as these plants may not actually be under "Drought" threat by the drought metrics we are using
+<br>
+Problem 2) Similar with "marine" plants (122 species) as above - but less are "both" or land dwelling near coast and more are actual sea grasses and other aquatic plants
+<br>
+Problem 3) Also related - there's these groups called "terrestrial/freshwater" (921 species) and "terrestrial/marine" (50 species) and all three (22 species) with a lot of species that have drought data! 
+<br>
+
+What to do for all of these aquatic plant cases - This is a total of 1884 species out of ~10,000... so a decent chunk. Do we look through one by one in their "habitat" description to select if they are aquatic or not? A lot of work! &#128128; &#128565; &#x1F635;
+
+
+
+
+```{r}
+plantsonIUCN
+```
+
 
 
 
