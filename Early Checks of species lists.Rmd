@@ -46,11 +46,14 @@ howmuchdatawegot <- ggplot(data=fullDroughtIUCNdata, aes(DroughtDataAvailable, f
   geom_bar() +
   scale_fill_manual(name = "DroughtDataAvailable", values = c("#7D5D3A", "#53619E")) +
   theme_classic() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(y = "Count of Species (log10 transformed)", x = "Drought Data Availability") +
+  guides(fill="none")
 plot(howmuchdatawegot)
 ```
 <br>
-10,256 species have drought data out of 66,535 (15.4%)
+<br>
+<b>10,256 species have drought data out of 66,535 (15.4%)</b>
 
 ### Aquatic plants (and species' "system")
 ```{r, message = F, output = F}
@@ -82,7 +85,9 @@ speciessystems <- ggplot(data=fullDroughtIUCNdata, aes(systems, fill = DroughtDa
   scale_fill_manual(name = "DroughtDataAvailable", values = c("#7D5D3A", "#53619E")) +
   scale_y_log10() +
   theme_classic() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(y = "Count of Species (log10 transformed)", x = "Habitat Type (IUCN defined)") +
+  guides(fill=guide_legend("Drought Data Availability"))
 
 plot(speciessystems)
 ```
@@ -90,10 +95,13 @@ plot(speciessystems)
 
 Aquatic plants problems: 
 <br>
+
 1) There are "freshwater" plants (769 species) that are included in the IUCN list AND our drought list - some of which ACTUALLY occupy water, some of which don't (grow along streams/rivers etc) and some of which can do both (juvenile in water and adult on land and vice versa) - what to do here as these plants may not actually be under "Drought" threat by the drought metrics we are using
 <br>
+
 2) Similar with "marine" plants (122 species) as above - but less are "both" or land dwelling near coast and more are actual sea grasses and other aquatic plants
 <br>
+
 3) Also related - there's these groups called "terrestrial/freshwater" (921 species) and "terrestrial/marine" (50 species) and all three (22 species) with a lot of species that have drought data! 
 <br>
 
@@ -104,15 +112,21 @@ What to do for all of these aquatic plant cases - This is a total of 1884 specie
 
 Quick bargraph
 ```{r}
-redlistcategories <- ggplot(data=fullDroughtIUCNdata, aes(redlistCategory, fill = DroughtDataAvailable)) +
+redlistcategories <- fullDroughtIUCNdata %>%
+  mutate(redlistCategory = factor(redlistCategory, c("Data Deficient", "Least Concern", "Lower Risk/least concern", "Lower Risk/conservation dependent", "Lower Risk/near threatened", "Near Threatened", "Vulnerable", "Endangered", "Critically Endangered", "Extinct in the Wild", "Extinct"))) %>%
+  ggplot(aes(redlistCategory, fill = DroughtDataAvailable)) +
   geom_bar(position= "dodge") +
   scale_fill_manual(name = "DroughtDataAvailable", values = c("#7D5D3A", "#53619E")) +
   scale_y_log10() +
   theme_classic() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(y = "Count of Species (log10 transformed)", x = "Red List Category") +
+  guides(fill=guide_legend("Drought Data Availability"))
 
 plot(redlistcategories)
 ```
+<br>
+
 Quick calculations of overall numbers
 ```{r}
 #datadefinicent with drought
@@ -156,6 +170,9 @@ realms <- ggplot(data=fullDroughtIUCNdata, aes(realm, fill = DroughtDataAvailabl
 
 plot(realms)
 ```
+
+<br>
+<br>
 This figure is pretty crazy - I think I need Stu's code or raw spatial data to really tell the coverage geographically
 
 I could give each species a mark (0 or 1) for each category and visualise it this way?
