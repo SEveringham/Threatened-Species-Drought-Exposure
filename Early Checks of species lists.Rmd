@@ -311,7 +311,6 @@ fullDroughtIUCNgrowthformdata <- left_join(fulldroughtandgrowthform, fullDrought
                                  'no'))) #make a column for if the species is aquatic or not
 
 #great now we can remove the plants that are specifically "aquatic" using these methods
-
 ```
 
 
