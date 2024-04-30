@@ -57,6 +57,9 @@ plot(howmuchdatawegot)
 <br>
 <b>10,256 species have drought data out of 66,535 (15.4%)</b>
 
+<br>
+<br>
+
 ### Aquatic plants (and species' "system")
 ```{r, message = F, output = F}
 #Marine Species with Droughtdata
@@ -79,8 +82,9 @@ sum(fullDroughtIUCNdata$DroughtDataAvailable == "Available" & fullDroughtIUCNdat
 sum(fullDroughtIUCNdata$DroughtDataAvailable == "Available" & fullDroughtIUCNdata$systems == "Terrestrial|Freshwater (=Inland waters)|Marine", na.rm=TRUE)
 #22
 ```
-
+<br>
 Quick bargraphs
+<br>
 ```{r}
 speciessystems <- ggplot(data=fullDroughtIUCNdata, aes(systems, fill = DroughtDataAvailable)) +
   geom_bar(position= "dodge") +
@@ -162,7 +166,7 @@ Threatened in redlist in general = 30,310 out of 66,535 (45.6%)
 ### Having a look at realm (sort of a location or even a 'cosmopolitan-ness' proxy)
 
 Quick bargraphs
-```{r}
+```{r, figures-side, fig.show="hold", out.width="50%"}
 realms <- fullDroughtIUCNdata %>%
   mutate(Afrotropical = as.numeric(ifelse(grepl("Afrotropical", realm, ignore.case = TRUE),'1','0'))) %>%
   mutate(Antarctic = as.numeric(ifelse(grepl("Antarctic", realm, ignore.case = TRUE),'1','0'))) %>%
@@ -307,10 +311,27 @@ fulldroughtandgrowthform <- df_list %>%
 
 fullDroughtIUCNgrowthformdata <- left_join(fulldroughtandgrowthform, fullDroughtIUCNdata, by = "scientificName") %>%
   mutate(Aquatic = ifelse(grepl("aqua|float", GrowthForm, ignore.case = TRUE),'yes',
-                          ifelse(systems == "Freshwater (=Inland waters)" | systems == "Marine" & is.na(GrowthForm), 'yes', 
-                                 'no'))) #make a column for if the species is aquatic or not
+                          ifelse(systems == "Freshwater (=Inland waters)" | systems == "Marine" & is.na(GrowthForm), 'yes', 'no'))) %>% #make a column for if the species is aquatic or not
+  mutate(Aquatic = ifelse(is.na(Aquatic), 'yes', Aquatic))
 
 #great now we can remove the plants that are specifically "aquatic" using these methods
+```
+
+<br>
+
+Quick plot for aquatic plants specifically
+
+```{r}
+aquaticnessplot <- ggplot(data = fullDroughtIUCNgrowthformdata, aes(Aquatic, fill = Aquatic)) +
+  geom_bar(position= "dodge") +
+  scale_fill_manual(name = "Aquatic", values = c("#7D5D3A", "#53619E")) +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(y = "Species Count (log10 transformed)", x = "") +
+  guides(fill="none")
+plot(aquaticnessplot)
+
+
 ```
 
 
