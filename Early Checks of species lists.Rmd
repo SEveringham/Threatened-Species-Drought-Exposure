@@ -29,14 +29,14 @@ plantsonIUCN <- read.csv("Data/Raw Data/assessments.csv") %>%
 taxonomyofplantsonIUCN <- read.csv("Data/Raw Data/taxonomy.csv")
 
 #read in the data that we have spatial data for (and therefore drought data)
-droughtdata <- read.csv("Data/Raw Data/drought_metrics_compile_20240326.csv") %>%
+droughtdata <- read.csv("Data/Raw Data/drought_metrics_compile_20240510.csv") %>%
   dplyr::rename(scientificName = species_name)
 ```
 
 ## Join data
 ```{r, message = F}
 fullDroughtIUCNdata <- left_join(plantsonIUCN, droughtdata) %>%
-  mutate(DroughtDataAvailable = ifelse(is.na(duration_min), 'NotAvailable', 'Available'))
+  mutate(DroughtDataAvailable = ifelse(is.na(duration_245_proportion_non_robust), 'NotAvailable', 'Available'))
 ```
 
 
@@ -64,15 +64,15 @@ plot(howmuchdatawegot)
 ```{r, message = F, output = F}
 #Marine Species with Droughtdata
 sum(fullDroughtIUCNdata$DroughtDataAvailable == "Available" & fullDroughtIUCNdata$systems == "Marine", na.rm=TRUE)
-#122 species
+#143 species
 
 #Freshwater species with drought data
 sum(fullDroughtIUCNdata$DroughtDataAvailable == "Available" & fullDroughtIUCNdata$systems == "Freshwater (=Inland waters)", na.rm=TRUE)
-#769! a lot...
+#764! a lot...
 
 #Terrestrial/Freshwater species with drought data
 sum(fullDroughtIUCNdata$DroughtDataAvailable == "Available" & fullDroughtIUCNdata$systems == "Terrestrial|Freshwater (=Inland waters)", na.rm=TRUE)
-#921! a lot...
+#926! a lot...
 
 #Terrestrial/marine species with drought data
 sum(fullDroughtIUCNdata$DroughtDataAvailable == "Available" & fullDroughtIUCNdata$systems == "Terrestrial|Marine", na.rm=TRUE)
@@ -102,13 +102,13 @@ plot(speciessystems)
 Aquatic plants problems: 
 <br>
 
-1) There are "freshwater" plants (769 species) that are included in the IUCN list AND our drought list - some of which ACTUALLY occupy water, some of which don't (grow along streams/rivers etc) and some of which can do both (juvenile in water and adult on land and vice versa) - what to do here as these plants may not actually be under "Drought" threat by the drought metrics we are using
+1) There are "freshwater" plants (764 species) that are included in the IUCN list AND our drought list - some of which ACTUALLY occupy water, some of which don't (grow along streams/rivers etc) and some of which can do both (juvenile in water and adult on land and vice versa) - what to do here as these plants may not actually be under "Drought" threat by the drought metrics we are using
 <br>
 
-2) Similar with "marine" plants (122 species) as above - but less are "both" or land dwelling near coast and more are actual sea grasses and other aquatic plants
+2) Similar with "marine" plants (143 species) as above - but less are "both" or land dwelling near coast and more are actual sea grasses and other aquatic plants
 <br>
 
-3) Also related - there's these groups called "terrestrial/freshwater" (921 species) and "terrestrial/marine" (50 species) and all three (22 species) with a lot of species that have drought data! 
+3) Also related - there's these groups called "terrestrial/freshwater" (926 species) and "terrestrial/marine" (50 species) and all three (22 species) with a lot of species that have drought data! 
 <br>
 
 What to do for all of these aquatic plant cases - This is a total of 1884 species out of ~10,000... so a decent chunk. Do we look through one by one in their "habitat" description to select if they are aquatic or not? A lot of work! &#128128; &#128565; &#x1F635;
@@ -144,24 +144,20 @@ sum(fullDroughtIUCNdata$redlistCategory == "Data Deficient")
 #threatened (not including extinct or not threatened) with drought data
 sum(fullDroughtIUCNdata$redlistCategory == "Critically Endangered" & fullDroughtIUCNdata$DroughtDataAvailable == "Available") + 
 sum(fullDroughtIUCNdata$redlistCategory == "Endangered" & fullDroughtIUCNdata$DroughtDataAvailable == "Available") + 
-sum(fullDroughtIUCNdata$redlistCategory == "Lower Risk/near threatened" & fullDroughtIUCNdata$DroughtDataAvailable == "Available") + 
-sum(fullDroughtIUCNdata$redlistCategory == "Near Threatened" & fullDroughtIUCNdata$DroughtDataAvailable == "Available") + 
 sum(fullDroughtIUCNdata$redlistCategory == "Vulnerable" & fullDroughtIUCNdata$DroughtDataAvailable == "Available")
 
 
 #threatened (not including extinct or not threatened) overall
 sum(fullDroughtIUCNdata$redlistCategory == "Critically Endangered") + 
 sum(fullDroughtIUCNdata$redlistCategory == "Endangered") + 
-sum(fullDroughtIUCNdata$redlistCategory == "Lower Risk/near threatened") + 
-sum(fullDroughtIUCNdata$redlistCategory == "Near Threatened") + 
 sum(fullDroughtIUCNdata$redlistCategory == "Vulnerable")
 ```
 
-Data Deficient in redlist with drought data = 723 out of 10256 (7.0%)
+Data Deficient in redlist with drought data = 806 out of 10679 (7.5%)
 Data deficient in general = 5371 out of 66,535 (8.1%)
 
-Threatened in redlist with drought data = 4765 out of 10256 (46.5%)
-Threatened in redlist in general = 30,310 out of 66,535 (45.6%)
+Threatened in redlist with drought data = 4251 out of 10679 (39.9%)
+Threatened in redlist in general = 26.276 out of 66,535 (39.5%)
 
 ### Having a look at realm (sort of a location or even a 'cosmopolitan-ness' proxy)
 
