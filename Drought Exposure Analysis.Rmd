@@ -1,0 +1,27 @@
+---
+title: "Drought Exposure Analysis"
+output:
+  html_document:
+    theme: flatly
+    toc: yes
+    toc_float: yes
+  pdf_document:
+    toc: yes
+  word_document:
+    toc: yes
+date: "2024-05-16"
+---
+
+Libraries required
+```{r}
+library(tidyverse)
+library(ggplot2)
+```
+
+Read in data
+```{r}
+droughtdata <- read.csv("Data/Data Used in Analyses/droughtdataforanalyses.csv")
+```
+
+
+Figures to determine the 
