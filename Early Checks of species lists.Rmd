@@ -172,12 +172,12 @@ realms <- fullDroughtIUCNdata %>%
   mutate(Neotropical = as.numeric(ifelse(grepl("Neotropical", realm, ignore.case = TRUE),'1','0'))) %>%
   mutate(Oceanian = as.numeric(ifelse(grepl("Oceanian", realm, ignore.case = TRUE),'1','0'))) %>%
   mutate(Palearctic = as.numeric(ifelse(grepl("Palearctic", realm, ignore.case = TRUE),'1','0'))) %>%
-  mutate(cosmopolitanness = rowSums(.[24:31])) %>%
+  mutate(cosmopolitanness = rowSums(.[45:52])) %>%
   mutate(across(cosmopolitanness, ~ na_if(., 0)))
 
 realmsplot <- realms %>%
   group_by(DroughtDataAvailable) %>%
-  summarise(across(23:30, ~ sum(.x, na.rm = TRUE))) %>%
+  summarise(across(44:51, ~ sum(.x, na.rm = TRUE))) %>%
   pivot_longer(cols = `Afrotropical`:`Palearctic`, names_to = "realm", values_to = "totalspecies") %>%
   ggplot(aes(x = realm, y=totalspecies, fill = DroughtDataAvailable)) +
   geom_bar(position= "dodge", stat= "identity") +
@@ -301,7 +301,7 @@ df_list <- list(filter(droughtdatawithgrowthform1, !is.na(GrowthForm)),
                 growthformnotcovered4)
 
 fulldroughtandgrowthform <- df_list %>%
-  reduce(full_join, by=c('scientificName', 'duration_min', 'duration_max', 'duration_mean', 'duration_stdev', 'frequency_min', 'frequency_max', 'frequency_mean', 'frequency_stdev', 'eoo_km2', 'GrowthForm', 'ReferenceforGrowthForm'))
+  reduce(full_join, by=c('scientificName', 'duration_245_proportion_non_robust', 'duration_245_proportion_positive_values', 'duration_245_proportion_negative_values', 'duration_245_min', 'duration_245_max', 'duration_245_mean', 'duration_245_stdev', 'frequency_stdev', 'eoo_km2', 'GrowthForm', 'ReferenceforGrowthForm'))
 
 # now put this back with IUCN habitat types and see the spread of species left that don't have growth form data on TRY
 
