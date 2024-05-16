@@ -350,7 +350,7 @@ plot(aquaticnessplot)
 ```
 
 <br> 
-Removing these aquatic plants and saving the relevant data for later!
+Removing thhese aquatic plants and saving the relevant data for later!
 
 ```{r}
 finaldroughtIUCNdata <- fullDroughtIUCNgrowthformdata %>%
