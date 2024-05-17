@@ -44,8 +44,8 @@ robustnessofdroughtprojection245 <- ggplot(data=droughtdata, aes(x =duration_245
 plot(robustnessofdroughtprojection245)
 
 #quick count of species we can't include for scenario 245
-sum(droughtdata$duration_245_proportion_non_robust.x == 0)
-#1808 species we cannot use!
+sum(droughtdata$duration_245_proportion_non_robust.x == 1)
+#5213 species we cannot use!
 
 robustnessofdroughtprojection585 <- ggplot(data=droughtdata, aes(x =duration_585_proportion_non_robust.x, fill = "#7D5D3A")) +
   geom_histogram() +
@@ -58,21 +58,21 @@ robustnessofdroughtprojection585 <- ggplot(data=droughtdata, aes(x =duration_585
 plot(robustnessofdroughtprojection585)
 
 #quick count of species we can't include for scenario 585
-sum(droughtdata$duration_585_proportion_non_robust.x == 0)
-#3324 species we cannot use for scenario 3324!
+sum(droughtdata$duration_585_proportion_non_robust.x == 1)
+#3635 species we cannot use for scenario 3324!
 
 #quick count of how many species we can't use altoghter
-sum(droughtdata$duration_245_proportion_non_robust.x == 0 &
-      droughtdata$duration_585_proportion_non_robust.x == 0)
-#1796 species have no range in robust drought projection areas for either scenario
+sum(droughtdata$duration_245_proportion_non_robust.x == 1 &
+      droughtdata$duration_585_proportion_non_robust.x == 1)
+#3465 species have no range in robust drought projection areas for either scenario
 
 #remove these species where there is no range at all in robust areas
 droughtdatarobust <- droughtdata %>%
-  filter(!(droughtdata$duration_245_proportion_non_robust.x == 0 &
-      droughtdata$duration_585_proportion_non_robust.x == 0))
+  filter(!(droughtdata$duration_245_proportion_non_robust.x == 1 &
+      droughtdata$duration_585_proportion_non_robust.x == 1))
 ```
 
-Now we are left with 7950 species with extents of occurrence in at least a small proportion of ther range in a robust drought projected area for either scenario
+Now we are left with 6281 species with extents of occurrence in at least a small proportion of their range in a robust drought projected area for either scenario
 
 With these species let's have a look at their proportion of distribution in future drought projection changes.
 
@@ -83,6 +83,30 @@ First we are going to have a look at the distribution of the number of species i
 Simple bar chart of increasing or decreasing proportion
 
 ```{r}
-ggplot(dat, aes(x=rating, colour=cond)) + geom_density()
+#scenario SPP 2-4.5
+proportiondroughtdurationincreasingordecreasing245 <- droughtdatarobust %>%
+  select(scientificName, duration_245_proportion_positive_value.x, duration_245_proportion_negative_value.x) %>%
+  filter(!(duration_245_proportion_positive_value.x== 0 & 
+           duration_245_proportion_negative_value.x == 0)) %>% #filtering the species that didn't have robust data for this scenario (but still in df to use for other scenario)
+  pivot_longer(!scientificName, names_to = "positiveornegative", values_to = "proportion") %>%
+  ggplot(aes(x = positiveornegative, y = proportion, fill = "#7D5D3A")) +
+  geom_boxplot() +
+  theme_classic() +
+  labs(y = "Proportion of each species' range that falls \n into drought duration increase/decrease", x = "") +
+  guides(fill="none")
+proportiondroughtdurationincreasingordecreasing245
+
+#scenario SPP 5 - 8.5
+proportiondroughtdurationincreasingordecreasing585 <- droughtdatarobust %>%
+  select(scientificName, duration_585_proportion_positive_value.x, duration_585_proportion_negative_value.x) %>%
+  filter(!(duration_585_proportion_positive_value.x== 0 & 
+           duration_585_proportion_negative_value.x == 0)) %>% #filtering the species that didn't have robust data for this scenario (but still in df to use for other scenario)
+  pivot_longer(!scientificName, names_to = "positiveornegative", values_to = "proportion") %>%
+  ggplot(aes(x = positiveornegative, y = proportion, fill = "#7D5D3A")) +
+  geom_boxplot() +
+  theme_classic() +
+  labs(y = "Proportion of each species' range that falls \n into drought duration increase/decrease", x = "") +
+  guides(fill="none")
+proportiondroughtdurationincreasingordecreasing585
 ```
 
