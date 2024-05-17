@@ -16,6 +16,7 @@ Libraries required
 ```{r}
 library(tidyverse)
 library(ggplot2)
+library(Hmisc)
 ```
 
 Read in data
@@ -82,18 +83,22 @@ First we are going to have a look at the distribution of the number of species i
 
 Simple bar chart of increasing or decreasing proportion
 
-```{r}
+```{r, fig.show="hold", out.width="50%", message = F}
 #scenario SPP 2-4.5
 proportiondroughtdurationincreasingordecreasing245 <- droughtdatarobust %>%
   select(scientificName, duration_245_proportion_positive_value.x, duration_245_proportion_negative_value.x) %>%
   filter(!(duration_245_proportion_positive_value.x== 0 & 
            duration_245_proportion_negative_value.x == 0)) %>% #filtering the species that didn't have robust data for this scenario (but still in df to use for other scenario)
   pivot_longer(!scientificName, names_to = "positiveornegative", values_to = "proportion") %>%
-  ggplot(aes(x = positiveornegative, y = proportion, fill = "#7D5D3A")) +
-  geom_boxplot() +
-  theme_classic() +
-  labs(y = "Proportion of each species' range that falls \n into drought duration increase/decrease", x = "") +
-  guides(fill="none")
+  ggplot(aes(x = positiveornegative, y = log(proportion+0.00001), fill = positiveornegative)) +
+  geom_violin(width = 0.7) +
+  stat_summary(
+    fun.data = "mean_sdl",  fun.args = list(mult = 1), 
+    geom = "pointrange", color = "black") +
+    scale_fill_manual(name = "positiveornegative", values = c("#53619E", "#7D5D3A")) +
+    theme_classic() +
+  guides(fill="none") +
+  labs(y = "Proportion of each species' range that falls \n into drought duration increase/decrease", x = "")
 proportiondroughtdurationincreasingordecreasing245
 
 #scenario SPP 5 - 8.5
@@ -102,11 +107,15 @@ proportiondroughtdurationincreasingordecreasing585 <- droughtdatarobust %>%
   filter(!(duration_585_proportion_positive_value.x== 0 & 
            duration_585_proportion_negative_value.x == 0)) %>% #filtering the species that didn't have robust data for this scenario (but still in df to use for other scenario)
   pivot_longer(!scientificName, names_to = "positiveornegative", values_to = "proportion") %>%
-  ggplot(aes(x = positiveornegative, y = proportion, fill = "#7D5D3A")) +
-  geom_boxplot() +
-  theme_classic() +
-  labs(y = "Proportion of each species' range that falls \n into drought duration increase/decrease", x = "") +
-  guides(fill="none")
+  ggplot(aes(x = positiveornegative, y = log(proportion+0.00001), fill = positiveornegative)) +
+  geom_violin(width = 0.7) +
+  stat_summary(
+    fun.data = "mean_sdl",  fun.args = list(mult = 1), 
+    geom = "pointrange", color = "black") +
+    scale_fill_manual(name = "positiveornegative", values = c("#53619E", "#7D5D3A")) +
+    theme_classic() +
+  guides(fill="none") +
+  labs(y = "Proportion of each species' range that falls \n into drought duration increase/decrease", x = "")
 proportiondroughtdurationincreasingordecreasing585
 ```
 
