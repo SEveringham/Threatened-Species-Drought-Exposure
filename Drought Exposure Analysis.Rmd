@@ -13,7 +13,7 @@ date: "2024-05-16"
 ---
 
 Libraries required
-```{r}
+```{r, message = F, warning = F}
 library(tidyverse)
 library(ggplot2)
 library(Hmisc)
@@ -25,22 +25,31 @@ droughtdata <- read.csv("Data/Data Used in Analyses/droughtdataforanalyses.csv")
 ```
 
 
-## Figures to determine the exposure of drought to species listed as threatened on the IUCN redlist
+## Figures 
+
+To determine the exposure of drought to species listed as threatened on the IUCN redlist
 
 We are starting off with 9746 species because we have previously filtered out aquatic species that aren't biologically impacted by terrestrial drought
 
-### Firstly Looking at the robustness of drought data which species' extent of occurrences (EOO)
+### Robustness of drought data
+
+Firstly Looking at the robustness of drought data which species' extent of occurrences (EOO)
 
 Doing this for both IPCC scenarios SSP 2-4.5 (245 in data) and SSP 5-8.5 (585 in data)
 
 ```{r,figures-side, fig.show="hold", out.width="50%", message = F}
-robustnessofdroughtprojection245 <- ggplot(data=droughtdata, aes(x =duration_245_proportion_non_robust.x, fill = "#7D5D3A")) +
-  geom_histogram() +
-  theme_classic() +
-  labs(y = "Count of Species (log10 transformed)", x = "Proportion of Area that falls into robust drought projections (scenario SSP 2 - 4.5)") +
+robustnessofdroughtprojection245 <- ggplot(data=droughtdata, aes(x =duration_245_proportion_non_robust.x, fill = "#53619E")) +
+  geom_histogram(colour = "grey40", bins = 100) +
+  ggplot2::annotate("text",
+    label="SSP 2 - 4.5", 
+    x=0.15,
+    y=8000,
+  size = 10) +
+  theme_classic(base_size =15) +
+  labs(y = "Count of Species (log10 transformed)", x = "Proportion of a species' extent of occurrence that is a non-robust area \n (i.e. DOESN'T fall into robust drought projections pixel)") +
+  scale_fill_manual(values =  "#53619E")+
   scale_y_continuous(trans = "log10") +
   guides(fill="none")
-  
   
 plot(robustnessofdroughtprojection245)
 
@@ -48,11 +57,18 @@ plot(robustnessofdroughtprojection245)
 sum(droughtdata$duration_245_proportion_non_robust.x == 1)
 #5213 species we cannot use!
 
-robustnessofdroughtprojection585 <- ggplot(data=droughtdata, aes(x =duration_585_proportion_non_robust.x, fill = "#7D5D3A")) +
-  geom_histogram() +
-  theme_classic() +
-  labs(y = "Count of Species (log10 transformed)", x = "Proportion of Area that falls into robust drought projections (scenario SSP 5 - 8.5)") +
+robustnessofdroughtprojection585 <- ggplot(data=droughtdata, aes(x =duration_585_proportion_non_robust.x,fill = "#53619E")) +
+  geom_histogram(colour = "grey40", bins = 100) +
+  ggplot2::annotate("text",
+    label="SSP 5 - 8.5", 
+    x=0.15,
+    y=8000,
+    size = 10
+  ) +
+  theme_classic(base_size = 15) +
+  labs(y = "", x = "Proportion of a species' extent of occurrence that is a non-robust area \n (i.e. DOESN'T fall into robust drought projections pixel)") +
   scale_y_continuous(trans = "log10") +
+  scale_fill_manual(values =  "#53619E")+
   guides(fill="none")
   
   
@@ -81,7 +97,7 @@ With these species let's have a look at their proportion of distribution in futu
 
 First we are going to have a look at the distribution of the number of species i.e. the proportion of species whose ranges fall into areas that will increase in drought duration or decrease in drought duration (or show no change - 0) into the future
 
-Simple bar chart of increasing or decreasing proportion
+Simple violin plot of increasing or decreasing proportion
 
 ```{r, fig.show="hold", out.width="50%", message = F}
 #scenario SPP 2-4.5
@@ -90,15 +106,23 @@ proportiondroughtdurationincreasingordecreasing245 <- droughtdatarobust %>%
   filter(!(duration_245_proportion_positive_value.x== 0 & 
            duration_245_proportion_negative_value.x == 0)) %>% #filtering the species that didn't have robust data for this scenario (but still in df to use for other scenario)
   pivot_longer(!scientificName, names_to = "positiveornegative", values_to = "proportion") %>%
-  ggplot(aes(x = positiveornegative, y = log(proportion+0.00001), fill = positiveornegative)) +
-  geom_violin(width = 0.7) +
+  ggplot(aes(x = positiveornegative, y = log10(proportion+0.00001), fill = positiveornegative)) +
+  geom_violin(width = 1) +
+  scale_x_discrete(breaks=c("duration_245_proportion_positive_value.x","duration_245_proportion_negative_value.x"),
+        labels=c("Increase in Drought Duration", "Decrease in Drought Duration")) +
   stat_summary(
     fun.data = "mean_sdl",  fun.args = list(mult = 1), 
     geom = "pointrange", color = "black") +
     scale_fill_manual(name = "positiveornegative", values = c("#53619E", "#7D5D3A")) +
-    theme_classic() +
+    theme_classic(base_size = 15) +
   guides(fill="none") +
-  labs(y = "Proportion of each species' range that falls \n into drought duration increase/decrease", x = "")
+  labs(y = "Proportion of each species' range that \n falls into drought duration change \n (log10 trans.)", x = "") +
+  ggplot2::annotate("text",
+    label="SSP 2 - 4.5", 
+    x=0.8,
+    y=1,
+    size = 10
+  )
 proportiondroughtdurationincreasingordecreasing245
 
 #scenario SPP 5 - 8.5
@@ -107,15 +131,70 @@ proportiondroughtdurationincreasingordecreasing585 <- droughtdatarobust %>%
   filter(!(duration_585_proportion_positive_value.x== 0 & 
            duration_585_proportion_negative_value.x == 0)) %>% #filtering the species that didn't have robust data for this scenario (but still in df to use for other scenario)
   pivot_longer(!scientificName, names_to = "positiveornegative", values_to = "proportion") %>%
-  ggplot(aes(x = positiveornegative, y = log(proportion+0.00001), fill = positiveornegative)) +
-  geom_violin(width = 0.7) +
+  ggplot(aes(x = positiveornegative, y = log10(proportion+0.00001), fill = positiveornegative)) +
+  geom_violin(width = 1) +
   stat_summary(
     fun.data = "mean_sdl",  fun.args = list(mult = 1), 
     geom = "pointrange", color = "black") +
     scale_fill_manual(name = "positiveornegative", values = c("#53619E", "#7D5D3A")) +
-    theme_classic() +
+  scale_x_discrete(breaks=c("duration_585_proportion_positive_value.x","duration_585_proportion_negative_value.x"),
+        labels=c("Increase in Drought Duration", "Decrease in Drought Duration")) +
+  theme_classic(base_size = 15) +
   guides(fill="none") +
-  labs(y = "Proportion of each species' range that falls \n into drought duration increase/decrease", x = "")
+  labs(y = "", x = "") +
+  ggplot2::annotate("text",
+    label="SSP 5 - 8.5", 
+    x=0.8,
+    y=1,
+    size = 10
+  )
 proportiondroughtdurationincreasingordecreasing585
+```
+Now same plots but with JUST threatened species (vulnerable, endangered, critically endangered) and comparing these groups
+
+```{r, fig.show="hold", out.width="50%", message = F}
+#scenario SPP 2-4.5
+threatenedspeciesprop245 <- droughtdatarobust %>%
+  select(scientificName, category.x, duration_245_proportion_positive_value.x, duration_245_proportion_negative_value.x) %>%
+  filter(category.x == "VU" | category.x == "EN" | category.x == "CR") %>%
+   pivot_longer(!c(scientificName, category.x), names_to = "positiveornegative", values_to = "proportion") %>%
+  ggplot(aes(x = positiveornegative, y = log(proportion+0.00001), fill = category.x)) +
+  geom_violin(aes(fill= category.x), width = 1) +
+  stat_summary(
+    fun.data = "mean_sdl",  fun.args = list(mult = 1), 
+    aes(group = category.x),
+    position=position_dodge(1),
+    geom = "pointrange", color = "black") +
+    scale_fill_manual(name = "category.x", values = c("#53619E", "#7D5D3A", "yellow3")) +
+    theme_classic() +
+  labs(y = "Proportion of each species' range that falls \n into drought duration increase/decrease", x = "")
+threatenedspeciesprop245
+
+#scenario SPP 5-8.5
+threatenedspeciesprop585 <- droughtdatarobust %>%
+  select(scientificName, category.x, duration_585_proportion_positive_value.x, duration_585_proportion_negative_value.x) %>%
+  filter(category.x == "VU" | category.x == "EN" | category.x == "CR") %>%
+   pivot_longer(!c(scientificName, category.x), names_to = "positiveornegative", values_to = "proportion") %>%
+  ggplot(aes(x = positiveornegative, y = log(proportion+0.00001), fill = category.x)) +
+  geom_violin(aes(fill= category.x), width = 1) +
+  stat_summary(
+    fun.data = "mean_sdl",  fun.args = list(mult = 1), 
+    aes(group = category.x),
+    position=position_dodge(1),
+    geom = "pointrange", color = "black") +
+    scale_fill_manual(name = "category.x", values = c("#53619E", "#7D5D3A", "yellow3")) +
+    theme_classic() +
+  labs(y = "Proportion of each species' range that falls \n into drought duration increase/decrease", x = "")
+threatenedspeciesprop585
+
+
+```
+
+
+
+Density plots of duration change (not just a binary negative or positive)
+
+```{r}
+
 ```
 
