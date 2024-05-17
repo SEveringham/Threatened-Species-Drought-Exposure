@@ -24,4 +24,65 @@ droughtdata <- read.csv("Data/Data Used in Analyses/droughtdataforanalyses.csv")
 ```
 
 
-Figures to determine the 
+## Figures to determine the exposure of drought to species listed as threatened on the IUCN redlist
+
+We are starting off with 9746 species because we have previously filtered out aquatic species that aren't biologically impacted by terrestrial drought
+
+### Firstly Looking at the robustness of drought data which species' extent of occurrences (EOO)
+
+Doing this for both IPCC scenarios SSP 2-4.5 (245 in data) and SSP 5-8.5 (585 in data)
+
+```{r,figures-side, fig.show="hold", out.width="50%", message = F}
+robustnessofdroughtprojection245 <- ggplot(data=droughtdata, aes(x =duration_245_proportion_non_robust.x, fill = "#7D5D3A")) +
+  geom_histogram() +
+  theme_classic() +
+  labs(y = "Count of Species (log10 transformed)", x = "Proportion of Area that falls into robust drought projections (scenario SSP 2 - 4.5)") +
+  scale_y_continuous(trans = "log10") +
+  guides(fill="none")
+  
+  
+plot(robustnessofdroughtprojection245)
+
+#quick count of species we can't include for scenario 245
+sum(droughtdata$duration_245_proportion_non_robust.x == 0)
+#1808 species we cannot use!
+
+robustnessofdroughtprojection585 <- ggplot(data=droughtdata, aes(x =duration_585_proportion_non_robust.x, fill = "#7D5D3A")) +
+  geom_histogram() +
+  theme_classic() +
+  labs(y = "Count of Species (log10 transformed)", x = "Proportion of Area that falls into robust drought projections (scenario SSP 5 - 8.5)") +
+  scale_y_continuous(trans = "log10") +
+  guides(fill="none")
+  
+  
+plot(robustnessofdroughtprojection585)
+
+#quick count of species we can't include for scenario 585
+sum(droughtdata$duration_585_proportion_non_robust.x == 0)
+#3324 species we cannot use for scenario 3324!
+
+#quick count of how many species we can't use altoghter
+sum(droughtdata$duration_245_proportion_non_robust.x == 0 &
+      droughtdata$duration_585_proportion_non_robust.x == 0)
+#1796 species have no range in robust drought projection areas for either scenario
+
+#remove these species where there is no range at all in robust areas
+droughtdatarobust <- droughtdata %>%
+  filter(!(droughtdata$duration_245_proportion_non_robust.x == 0 &
+      droughtdata$duration_585_proportion_non_robust.x == 0))
+```
+
+Now we are left with 7950 species with extents of occurrence in at least a small proportion of ther range in a robust drought projected area for either scenario
+
+With these species let's have a look at their proportion of distribution in future drought projection changes.
+
+## Drought Duration
+
+First we are going to have a look at the distribution of the number of species i.e. the proportion of species whose ranges fall into areas that will increase in drought duration or decrease in drought duration (or show no change - 0) into the future
+
+Simple bar chart of increasing or decreasing proportion
+
+```{r}
+ggplot(dat, aes(x=rating, colour=cond)) + geom_density()
+```
+
