@@ -17,6 +17,7 @@ Libraries required
 library(tidyverse)
 library(ggplot2)
 library(Hmisc)
+library(ggridges)
 ```
 
 Read in data
@@ -213,7 +214,37 @@ threatenedspeciesprop585
 
 gives a bit more detail - not just a binary negative or positive as above
 
-```{r}
+```{r, fig.show="hold", out.width="50%", message = F}
+#scenario SPP 2-4.5
+durationdensity245 <- droughtdatarobust %>%
+  filter(category.x == "CR" | category.x == "EN" | category.x == "VU") %>%
+  ggplot(aes(x = duration_245_mean.x, y = category.x, fill = category.x)) +
+  geom_density_ridges(scale = 2, alpha = 0.7, quantile_lines = T, quantile_fun = mean) + 
+  scale_y_discrete(expand = c(0, 0)) +     # will generally have to set the `expand` option
+  scale_x_continuous(expand = c(0, 0)) +   # for both axes to remove unneeded padding
+  coord_cartesian(clip = "off") + # to avoid clipping of the very top of the top ridgeline
+  scale_fill_manual(values = c("#D52001", "#FC7F3F", "#F9E814")) +
+  guides(fill = "none") +
+  xlab("Mean Drought Duration Change for SSP 2-4.5 Projection (months)") +
+  ylab("") +
+  theme_ridges()
 
+durationdensity245
+
+#scenario SSP 5-8.5
+durationdensity585 <- droughtdatarobust %>%
+  filter(category.x == "CR" | category.x == "EN" | category.x == "VU") %>%
+  ggplot(aes(x = duration_585_mean.x, y = category.x, fill = category.x)) +
+  geom_density_ridges(scale = 2, alpha = 0.7, quantile_lines = T, quantile_fun = mean) + 
+  scale_y_discrete(expand = c(0, 0)) +     # will generally have to set the `expand` option
+  scale_x_continuous(expand = c(0, 0)) +   # for both axes to remove unneeded padding
+  coord_cartesian(clip = "off") + # to avoid clipping of the very top of the top ridgeline
+  scale_fill_manual(values = c("#D52001", "#FC7F3F", "#F9E814")) +
+  guides(fill = "none") +
+  xlab("Mean Drought Duration Change for SSP 5-8.5 Projection (months)") +
+  ylab("") +
+  theme_ridges()
+
+durationdensity585
 ```
 
