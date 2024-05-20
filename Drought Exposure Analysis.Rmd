@@ -167,7 +167,7 @@ threatenedspeciesprop245 <- droughtdatarobust %>%
     aes(group = category.x),
     position=position_dodge(1),
     geom = "pointrange", color = "black") +
-    scale_fill_manual(name = "category.x", values = c("#53619E", "#7D5D3A", "yellow3")) +
+    scale_fill_manual(name = "category.x", values = c("#D52001", "#FC7F3F", "#F9E814")) +
   guides(fill = "none") +
     theme_classic(base_size = 15) +
    scale_x_discrete(breaks=c("duration_245_proportion_positive_value.x","duration_245_proportion_negative_value.x"), labels=c("Increase in Drought Duration", "Decrease in Drought Duration")) +
@@ -193,7 +193,7 @@ threatenedspeciesprop585 <- droughtdatarobust %>%
     aes(group = category.x),
     position=position_dodge(1),
     geom = "pointrange", color = "black") +
-    scale_fill_manual(name = "category.x", values = c("#53619E", "#7D5D3A", "yellow3")) +
+    scale_fill_manual(name = "category.x", values = c("#D52001", "#FC7F3F", "#F9E814")) +
    scale_x_discrete(breaks=c("duration_585_proportion_positive_value.x","duration_585_proportion_negative_value.x"),
         labels=c("Increase in Drought Duration", "Decrease in Drought Duration")) +
     theme_classic(base_size = 15) +
