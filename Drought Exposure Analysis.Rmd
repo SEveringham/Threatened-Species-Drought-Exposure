@@ -219,7 +219,7 @@ gives a bit more detail - not just a binary negative or positive as above
 durationdensity245 <- droughtdatarobust %>%
   filter(category.x == "CR" | category.x == "EN" | category.x == "VU") %>%
   ggplot(aes(x = duration_245_mean.x, y = category.x, fill = category.x)) +
-  geom_density_ridges(scale = 2, alpha = 0.7, quantile_lines = T, quantile_fun = mean) + 
+  geom_density_ridges(scale = 2, alpha = 0.8, quantile_lines = T, quantile_fun = mean) + 
   scale_y_discrete(expand = c(0, 0)) +     # will generally have to set the `expand` option
   scale_x_continuous(expand = c(0, 0)) +   # for both axes to remove unneeded padding
   coord_cartesian(clip = "off") + # to avoid clipping of the very top of the top ridgeline
@@ -241,7 +241,7 @@ durationdensity245
 durationdensity585 <- droughtdatarobust %>%
   filter(category.x == "CR" | category.x == "EN" | category.x == "VU") %>%
   ggplot(aes(x = duration_585_mean.x, y = category.x, fill = category.x)) +
-  geom_density_ridges(scale = 2, alpha = 0.7, quantile_lines = T, quantile_fun = mean) + 
+  geom_density_ridges(scale = 2, alpha = 0.8, quantile_lines = T, quantile_fun = mean) + 
   scale_y_discrete(expand = c(0, 0)) +     # will generally have to set the `expand` option
   scale_x_continuous(expand = c(0, 0)) +   # for both axes to remove unneeded padding
   coord_cartesian(clip = "off") + # to avoid clipping of the very top of the top ridgeline
@@ -260,3 +260,166 @@ durationdensity585 <- droughtdatarobust %>%
 durationdensity585
 ```
 
+### Drought Frequency
+
+#### Histograms and proportions
+
+Same as above with drought frequency instead of duration
+
+Simple violin plot of increasing or decreasing proportion
+
+```{r, fig.show="hold", out.width="50%", message = F}
+#scenario SPP 2-4.5
+proportiondroughtfrequencyincreasingordecreasing245 <- droughtdatarobust %>%
+  select(scientificName, frequency_245_proportion_positive_value.x, frequency_245_proportion_negative_value.x) %>%
+  filter(!(frequency_245_proportion_positive_value.x== 0 & 
+           frequency_245_proportion_negative_value.x == 0)) %>% #filtering the species that didn't have robust data for this scenario (but still in df to use for other scenario)
+  pivot_longer(!scientificName, names_to = "positiveornegative", values_to = "proportion") %>%
+  ggplot(aes(x = positiveornegative, y = log10(proportion+0.00001), fill = positiveornegative)) +
+  geom_violin(width = 1) +
+  scale_x_discrete(breaks=c("frequency_245_proportion_positive_value.x","frequency_245_proportion_negative_value.x"),
+        labels=c("Increase in Drought Frequency", "Decrease in Drought Frequency")) +
+  stat_summary(
+    fun.data = "mean_sdl",  fun.args = list(mult = 1), 
+    geom = "pointrange", color = "black") +
+    scale_fill_manual(name = "positiveornegative", values = c("#53619E", "#7D5D3A")) +
+    theme_classic(base_size = 15) +
+  guides(fill="none") +
+  labs(y = "Proportion of each species' range that \n falls into drought frequency change \n (log10 trans.)", x = "") +
+  ggplot2::annotate("text",
+    label="SSP 2 - 4.5", 
+    x=0.8,
+    y=1,
+    size = 10
+  )
+proportiondroughtfrequencyincreasingordecreasing245
+
+#scenario SPP 5 - 8.5
+proportiondroughtfrequencyincreasingordecreasing585 <- droughtdatarobust %>%
+  select(scientificName, frequency_585_proportion_positive_value.x, frequency_585_proportion_negative_value.x) %>%
+  filter(!(frequency_585_proportion_positive_value.x== 0 & 
+           frequency_585_proportion_negative_value.x == 0)) %>% #filtering the species that didn't have robust data for this scenario (but still in df to use for other scenario)
+  pivot_longer(!scientificName, names_to = "positiveornegative", values_to = "proportion") %>%
+  ggplot(aes(x = positiveornegative, y = log10(proportion+0.00001), fill = positiveornegative)) +
+  geom_violin(width = 1) +
+  stat_summary(
+    fun.data = "mean_sdl",  fun.args = list(mult = 1), 
+    geom = "pointrange", color = "black") +
+    scale_fill_manual(name = "positiveornegative", values = c("#53619E", "#7D5D3A")) +
+  scale_x_discrete(breaks=c("frequency_585_proportion_positive_value.x","frequency_585_proportion_negative_value.x"),
+        labels=c("Increase in Drought frequency", "Decrease in Drought frequency")) +
+  theme_classic(base_size = 15) +
+  guides(fill="none") +
+  labs(y = "", x = "") +
+  ggplot2::annotate("text",
+    label="SSP 5 - 8.5", 
+    x=0.8,
+    y=1,
+    size = 10
+  )
+proportiondroughtfrequencyincreasingordecreasing585
+```
+Now same plots but with JUST threatened species (vulnerable, endangered, critically endangered) and comparing these groups
+
+```{r, fig.show="hold", out.width="50%", message = F}
+#scenario SPP 2-4.5
+threatenedspeciesprop245 <- droughtdatarobust %>%
+  select(scientificName, category.x, frequency_245_proportion_positive_value.x, frequency_245_proportion_negative_value.x) %>%
+  filter(category.x == "VU" | category.x == "EN" | category.x == "CR") %>%
+   pivot_longer(!c(scientificName, category.x), names_to = "positiveornegative", values_to = "proportion") %>%
+  ggplot(aes(x = positiveornegative, y = proportion, fill = category.x)) +
+  geom_violin(aes(fill= category.x), width = 1.2) +
+  stat_summary(
+    fun.data = "mean_sdl",  fun.args = list(mult = 1), 
+    aes(group = category.x),
+    position=position_dodge(1.2),
+    geom = "pointrange", color = "black") +
+    scale_fill_manual(name = "category.x", values = c("#D52001", "#FC7F3F", "#F9E814")) +
+  guides(fill = "none") +
+    theme_classic(base_size = 15) +
+   scale_x_discrete(breaks=c("frequency_245_proportion_positive_value.x","frequency_245_proportion_negative_value.x"), labels=c("Increase in Drought frequency", "Decrease in Drought frequency")) +
+  labs(y = "Proportion of each species' range that \n falls into drought frequency change \n (log10 trans.)", x = "") +
+  ggplot2::annotate("text",
+    label="SSP 2 - 4.5", 
+    x=0.8,
+    y=1.1,
+    size = 10
+  )
+    
+threatenedspeciesprop245
+
+#scenario SPP 5-8.5
+threatenedspeciesprop585 <- droughtdatarobust %>%
+  select(scientificName, category.x, frequency_585_proportion_positive_value.x, frequency_585_proportion_negative_value.x) %>%
+  filter(category.x == "VU" | category.x == "EN" | category.x == "CR") %>%
+   pivot_longer(!c(scientificName, category.x), names_to = "positiveornegative", values_to = "proportion") %>%
+  ggplot(aes(x = positiveornegative, y = proportion, fill = category.x)) +
+  geom_violin(aes(fill= category.x), width = 1.2) +
+  stat_summary(
+    fun.data = "mean_sdl",  fun.args = list(mult = 1), 
+    aes(group = category.x),
+    position=position_dodge(1.2),
+    geom = "pointrange", color = "black") +
+    scale_fill_manual(name = "category.x", values = c("#D52001", "#FC7F3F", "#F9E814")) +
+   scale_x_discrete(breaks=c("frequency_585_proportion_positive_value.x","frequency_585_proportion_negative_value.x"),
+        labels=c("Increase in Frequency", "Decrease in Frequency")) +
+    theme_classic(base_size = 15) +
+  labs(y = "", x = "") +
+  ggplot2::annotate("text",
+    label="SSP 5 - 8.5", 
+    x=0.9,
+    y=1.1,
+    size = 10
+  )
+threatenedspeciesprop585
+```
+
+#### Density plots of frequency change
+
+gives a bit more detail - not just a binary negative or positive as above
+
+```{r, fig.show="hold", out.width="50%", message = F}
+#scenario SPP 2-4.5
+frequencydensity245 <- droughtdatarobust %>%
+  filter(category.x == "CR" | category.x == "EN" | category.x == "VU") %>%
+  ggplot(aes(x = frequency_245_mean.x, y = category.x, fill = category.x)) +
+  geom_density_ridges(scale = 2, alpha = 0.8, quantile_lines = T, quantile_fun = mean) + 
+  scale_y_discrete(expand = c(0, 0)) +     # will generally have to set the `expand` option
+  scale_x_continuous(expand = c(0, 0)) +   # for both axes to remove unneeded padding
+  coord_cartesian(clip = "off") + # to avoid clipping of the very top of the top ridgeline
+  scale_fill_manual(values = c("#D52001", "#FC7F3F", "#F9E814")) +
+  guides(fill = "none") +
+  xlab("Mean Drought Frequency Change for SSP 2-4.5 Projection (Events per ??y)") +
+  ylab("") +
+  theme_ridges() +
+  ggplot2::annotate("text",
+    label="SSP 2 - 4.5", 
+    x=-0.4,
+    y=4.5,
+    size = 9
+  )
+
+frequencydensity245
+
+#scenario SSP 5-8.5
+frequencydensity585 <- droughtdatarobust %>%
+  filter(category.x == "CR" | category.x == "EN" | category.x == "VU") %>%
+  ggplot(aes(x = frequency_585_mean.x, y = category.x, fill = category.x)) +
+  geom_density_ridges(scale = 2, alpha = 0.8, quantile_lines = T, quantile_fun = mean) + 
+  scale_y_discrete(expand = c(0, 0)) +     # will generally have to set the `expand` option
+  scale_x_continuous(expand = c(0, 0)) +   # for both axes to remove unneeded padding
+  coord_cartesian(clip = "off") + # to avoid clipping of the very top of the top ridgeline
+  scale_fill_manual(values = c("#D52001", "#FC7F3F", "#F9E814")) +
+  guides(fill = "none") +
+  xlab("Mean Drought Frequency Change for SSP 5-8.5 Projection (Events per ??y)") +
+  ylab("") +
+  theme_ridges() +
+  ggplot2::annotate("text",
+    label="SSP 5 - 8.5", 
+    x=-0.5,
+    y=4.8,
+    size = 9
+  )
+
+frequencydensity585
+```
