@@ -227,7 +227,13 @@ durationdensity245 <- droughtdatarobust %>%
   guides(fill = "none") +
   xlab("Mean Drought Duration Change for SSP 2-4.5 Projection (months)") +
   ylab("") +
-  theme_ridges()
+  theme_ridges() +
+  ggplot2::annotate("text",
+    label="SSP 2 - 4.5", 
+    x=-0.4,
+    y=4.5,
+    size = 9
+  )
 
 durationdensity245
 
@@ -243,7 +249,13 @@ durationdensity585 <- droughtdatarobust %>%
   guides(fill = "none") +
   xlab("Mean Drought Duration Change for SSP 5-8.5 Projection (months)") +
   ylab("") +
-  theme_ridges()
+  theme_ridges() +
+  ggplot2::annotate("text",
+    label="SSP 5 - 8.5", 
+    x=-0.4,
+    y=4.2,
+    size = 9
+  )
 
 durationdensity585
 ```
