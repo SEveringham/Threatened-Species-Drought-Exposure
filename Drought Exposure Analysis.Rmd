@@ -34,6 +34,7 @@ library(ggplot2)
 library(Hmisc)
 library(ggridges)
 library(emmeans)
+library(ggbeeswarm)
 ```
 
 ## Read in data
@@ -276,25 +277,27 @@ ggsave(plot= StatsPlotBothSSPsdur, filename = "Outputs/DurationBarPlot.jpeg",  d
 
 #first tweak data in bothscenarios
 
-SpeciesScenariosDuration245 <- SpeciesScenariosDuration245 %>%
+SpeciesScenariosDuration245bounded <- SpeciesScenariosDuration245 %>%
   filter(!Scenario == " increaseAll") %>%
   filter(!Scenario == "decreaseAll") %>%
-  select(scientificName, duration_585_proportion_positive_value.x, duration_585_proportion_negative_value.x) %>%
+  select(scientificName, duration_245_proportion_positive_value.x, duration_245_proportion_negative_value.x) %>%
   pivot_longer(!scientificName, names_to = "positiveornegative", values_to = "proportion") %>%
   mutate(proportion = ifelse(proportion == 0, NA, proportion)) %>%
+  mutate(positiveornegative = ifelse(positiveornegative == "duration_245_proportion_positive_value.x", "positive", "negative")) %>%
   mutate(SSP = "245")
 
-SpeciesScenariosDuration585 <- SpeciesScenariosDuration585 %>%
+SpeciesScenariosDuration585bounded <- SpeciesScenariosDuration585 %>%
   filter(!Scenario == " increaseAll") %>%
   filter(!Scenario == "decreaseAll") %>%
   select(scientificName, duration_585_proportion_positive_value.x, duration_585_proportion_negative_value.x) %>%
   pivot_longer(!scientificName, names_to = "positiveornegative", values_to = "proportion") %>%
   mutate(proportion = ifelse(proportion == 0, NA, proportion)) %>%
+  mutate(positiveornegative = ifelse(positiveornegative == "duration_585_proportion_positive_value.x", "positive", "negative")) %>%
   mutate(SSP = "585")
 
 #then bind data
 
-BothScenariosData <- bind_rows(SpeciesScenariosDuration245, SpeciesScenariosDuration585)
+BothScenariosData <- bind_rows(SpeciesScenariosDuration245bounded, SpeciesScenariosDuration585bounded)
 
 #violins
 proportiondroughtdurationincreasingordecreasingviolin <- BothScenariosData %>%
@@ -314,6 +317,32 @@ proportiondroughtdurationincreasingordecreasingviolin <- BothScenariosData %>%
 proportiondroughtdurationincreasingordecreasingviolin
 
 ggsave(plot= proportiondroughtdurationincreasingordecreasingviolin, filename = "Outputs/DurationViolin.jpeg",  device = "jpeg", width = 10, height = 7)
+
+# creating dot plots of the 1's and 0's of proportion to overlay on the violin plots
+durationdotplotdata245 <- SpeciesScenariosDuration245 %>%
+  filter(Scenario == " increaseAll" | Scenario == "decreaseAll") %>% #first selecting just the 1s and 0s of SSP245
+  dplyr::rename(Scenario245 = Scenario) %>% 
+  select(scientificName, duration_245_proportion_positive_value.x, duration_245_proportion_negative_value.x) %>%
+  pivot_longer(!scientificName, names_to = "positiveornegative", values_to = "proportion") %>%
+  mutate(SSP = "245")
+
+durationdotplotdata585 <- SpeciesScenariosDuration585 %>%
+  filter(Scenario == " increaseAll" | Scenario == "decreaseAll") %>%
+  select(scientificName, duration_585_proportion_positive_value.x, duration_585_proportion_negative_value.x) %>%
+  pivot_longer(!scientificName, names_to = "positiveornegative", values_to = "proportion") %>%
+  mutate(SSP = "585")
+
+#join both scenarios data together
+durationdotplotdata <- bind_rows(durationdotplotdata245, durationdotplotdata585) #joining both dataframes together
+
+#draw dot plot
+durationdotplot <- durationdotplotdata %>%
+  filter()
+  ggplot(aes(x = positiveornegative, y = proportion, fill = SSP, color = SSP)) +
+  geom_quasirandom(aes(x = positiveornegative, y = proportion, fill = SSP, color = SSP)) +
+  scale_x_discrete(labels=c("Decrease in Drought Duration", "Increase in Drought Duration")) +
+  guides(fill="none", color = "none")
+durationdotplot
 ```
 <br>
 Some key stats from above figures:
@@ -624,9 +653,10 @@ ggsave(plot= StatsPlotBothSSPsfreq, filename = "Outputs/FrequencyBarPlot.jpeg", 
 SpeciesScenariosfrequency245 <- SpeciesScenariosfrequency245 %>%
   filter(!Scenario == " increaseAll") %>%
   filter(!Scenario == "decreaseAll") %>%
-  select(scientificName, frequency_585_proportion_positive_value.x, frequency_585_proportion_negative_value.x) %>%
+  select(scientificName, frequency_245_proportion_positive_value.x, frequency_245_proportion_negative_value.x) %>%
   pivot_longer(!scientificName, names_to = "positiveornegative", values_to = "proportion") %>%
   mutate(proportion = ifelse(proportion == 0, NA, proportion)) %>%
+  mutate(positiveornegative = ifelse(positiveornegative == "frequency_245_proportion_positive_value.x", "positive", "negative")) %>%
   mutate(SSP = "245")
 
 SpeciesScenariosfrequency585 <- SpeciesScenariosfrequency585 %>%
@@ -635,6 +665,7 @@ SpeciesScenariosfrequency585 <- SpeciesScenariosfrequency585 %>%
   select(scientificName, frequency_585_proportion_positive_value.x, frequency_585_proportion_negative_value.x) %>%
   pivot_longer(!scientificName, names_to = "positiveornegative", values_to = "proportion") %>%
   mutate(proportion = ifelse(proportion == 0, NA, proportion)) %>%
+  mutate(positiveornegative = ifelse(positiveornegative == "frequency_585_proportion_positive_value.x", "positive", "negative")) %>%
   mutate(SSP = "585")
 
 #then bind data
