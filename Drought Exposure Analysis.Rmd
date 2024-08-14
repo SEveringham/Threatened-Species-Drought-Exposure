@@ -666,10 +666,10 @@ Some key stats from above figures:
 
 For SSP 2-4.5
 
-- 93.4% of species (4829 species out of 1001) have some part of their range that falls into at least one area of an increase in drought frequency
-- 40% of species (2706 out of 1001) have their entire range falling into areas that increase in drought frequency
-- 16% of species (807 out of 1001) have some part of their range that falls into at least one area of a decrease in drought frequency
-- Only 9 species (<1%) has their entire range falling into regions with decreases in drought frequency
+- 96.6% of species (2077 species out of 2151) have some part of their range that falls into at least one area of an increase in drought frequency
+- 67.9% of species (1460 out of 2151) have their entire range falling into areas that increase in drought frequency
+- 4.1% of species (89 out of 2151) have some part of their range that falls into at least one area of a decrease in drought frequency
+- Only 8 species (<1%) has their entire range falling into regions with decreases in drought frequency
 
 
 <br>
@@ -678,10 +678,10 @@ For SSP 2-4.5
 For SSP 5-8.5 (similar stats to above scenario - they just get a tiny bit worse…)
 <br>
 
-- 93.7% of species (5419 species out of 1078) have some part of their range that falls into at least one area of an increase in drought duration
-- 60% of species (3466 out of 1078) have their entire range falling into areas that increase in drought duration
-- 16% of species (914 out of 1078) have some part of their range that falls into at least one area of a decrease in drought duration
-- <1% (21 out of 1078) have their entire range falling into regions with decreases in drought duration
+- 95.7% of species (2223 species out of 2323) have some part of their range that falls into at least one area of an increase in drought duration
+- 79.3% of species (1843 out of 2323) have their entire range falling into areas that increase in drought duration
+- 5.1% of species (119 out of 2323) have some part of their range that falls into at least one area of a decrease in drought duration
+- Only 23 species (1.0%) have their entire range falling into regions with decreases in drought frequency
 
 
 Now same plots but with JUST threatened species (vulnerable, endangered, critically endangered) and comparing these groups
