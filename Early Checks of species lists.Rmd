@@ -1,0 +1,370 @@
+---
+title: "Early Checks of Species lists"
+output:
+  html_document:
+    theme: flatly
+    toc: yes
+    toc_float: yes
+  pdf_document:
+    toc: yes
+  word_document:
+    toc: yes
+date: "2024-04-04"
+---
+
+## Libraries required
+
+```{r, message = F}
+library(tidyverse)
+library(rredlist)
+library(data.table)
+library(reshape)
+```
+
+## Read in Data
+```{r}
+#data downloaded from the IUCN red list (https://www.iucnredlist.org/search) for all organisms in the "Plantae" Kingdom (~66,000 records) - plants
+plantsonIUCN <- read.csv("Data/Raw Data/assessments.csv") %>%
+  select(-language, -rationale, -threats, -population, -populationTrend, -range, -useTrade, -conservationActions, -yearLastSeen, -scopes)
+taxonomyofplantsonIUCN <- read.csv("Data/Raw Data/taxonomy.csv")
+
+#read in the data that we have spatial data for (and therefore drought data) - based on species Extents of occurrence (EOOs)
+droughtdata <- read.csv("Data/Raw Data/drought_metrics_compile_20240510.csv") %>%
+  dplyr::rename(scientificName = species_name) %>%
+  mutate(EOODataAvailable = "AvailableEOO")
+
+#also reading in the data that we have spatial data that is less accurate - point data
+droughtdatapoints <- read.csv("Data/Raw Data/drought_metrics_compile_points_20240607.csv") %>%
+  dplyr::rename(scientificName = species_name) %>%
+  mutate(EOODataAvailable = "AvailablePoint")
+```
+
+## Join data
+```{r, message = F}
+Bothdroughtmethods <- bind_rows(droughtdata, droughtdatapoints)
+fullDroughtIUCNdata <- left_join(plantsonIUCN, Bothdroughtmethods) %>%
+  mutate(EOODataAvailable = ifelse(is.na(EOODataAvailable), "NotAvailable", EOODataAvailable))
+```
+
+## Some interesting checks of the IUCN data 
+
+<br>
+<br>
+
+### Quick look at how much our data represents
+```{r}
+howmuchdatawegot <- ggplot(data=fullDroughtIUCNdata, aes(EOODataAvailable, fill = EOODataAvailable)) +
+  geom_bar() +
+  scale_fill_manual(name = "EOODataAvailable", values = c("#7D5D3A", "#53619E", "grey")) +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(y = "Count of Species (log10 transformed)", x = "Drought Data Availability") +
+  guides(fill="none")
+plot(howmuchdatawegot)
+```
+<br>
+<br>
+<b>10,679 species with extents of occurrence have drought data out of 66,535 (16.1%)</b>
+<b> XX species with point range data have have drought data out of 66,535 (XX%)</b>
+
+
+### Checking out coverage of threat status
+
+Quick bargraph
+```{r}
+redlistcategories <- fullDroughtIUCNdata %>%
+  mutate(redlistCategory = factor(redlistCategory, c("Data Deficient", "Least Concern", "Lower Risk/least concern", "Lower Risk/conservation dependent", "Lower Risk/near threatened", "Near Threatened", "Vulnerable", "Endangered", "Critically Endangered", "Extinct in the Wild", "Extinct"))) %>%
+  ggplot(aes(redlistCategory, fill = EOODataAvailable)) +
+  geom_bar(position= "dodge") +
+  scale_fill_manual(name = "EOODataAvailable", values = c("#7D5D3A", "#53619E", "grey")) +
+  scale_y_log10() +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(y = "Count of Species (log10 transformed)", x = "Red List Category") +
+  guides(fill=guide_legend("Drought Data Availability"))
+
+plot(redlistcategories)
+```
+<br>
+
+This shows our data (which is a subsample) covers all threat statuses (stati?) well!
+
+Quick calculations of overall numbers
+```{r}
+#datadefinicent with drought
+sum(fullDroughtIUCNdata$redlistCategory == "Data Deficient" & fullDroughtIUCNdata$EOODataAvailable == "AvailableEOO")
+#data deficient overall
+sum(fullDroughtIUCNdata$redlistCategory == "Data Deficient")
+
+
+#threatened (not including extinct or not threatened) with drought data
+sum(fullDroughtIUCNdata$redlistCategory == "Critically Endangered" & fullDroughtIUCNdata$EOODataAvailable == "AvailableEOO") + 
+sum(fullDroughtIUCNdata$redlistCategory == "Endangered" & fullDroughtIUCNdata$EOODataAvailable == "AvailableEOO") + 
+sum(fullDroughtIUCNdata$redlistCategory == "Vulnerable" & fullDroughtIUCNdata$EOODataAvailable == "AvailableEOO")
+
+
+#threatened (not including extinct or not threatened) overall
+sum(fullDroughtIUCNdata$redlistCategory == "Critically Endangered") + 
+sum(fullDroughtIUCNdata$redlistCategory == "Endangered") + 
+sum(fullDroughtIUCNdata$redlistCategory == "Vulnerable")
+```
+
+Data Deficient in redlist with drought data = 806 out of 10679 (7.5%) 
+Data deficient in general = 5371 out of 66,535 (8.1%)
+we won't really be looking at these species
+
+Threatened in redlist with drought data = 4251 out of 10679 (39.9%) 
+Threatened in redlist in general = 26.276 out of 66,535 (39.5%)
+
+Note that threatened includes vulnerable, endangered and critically endangered - this is really where our focus lies in our further analyses
+
+
+
+### Having a look at realm (sort of a location or even a 'cosmopolitan-ness' proxy)
+
+Quick bargraphs
+```{r, figures-side, fig.show="hold", out.width="50%"}
+realms <- fullDroughtIUCNdata %>%
+  mutate(Afrotropical = as.numeric(ifelse(grepl("Afrotropical", realm, ignore.case = TRUE),'1','0'))) %>%
+  mutate(Antarctic = as.numeric(ifelse(grepl("Antarctic", realm, ignore.case = TRUE),'1','0'))) %>%
+  mutate(Australasian = as.numeric(ifelse(grepl("Australasian", realm, ignore.case = TRUE),'1','0'))) %>%
+  mutate(Indomalayan = as.numeric(ifelse(grepl("Indomalayan", realm, ignore.case = TRUE),'1','0'))) %>%
+  mutate(Nearctic = as.numeric(ifelse(grepl("Nearctic", realm, ignore.case = TRUE),'1','0'))) %>%
+  mutate(Neotropical = as.numeric(ifelse(grepl("Neotropical", realm, ignore.case = TRUE),'1','0'))) %>%
+  mutate(Oceanian = as.numeric(ifelse(grepl("Oceanian", realm, ignore.case = TRUE),'1','0'))) %>%
+  mutate(Palearctic = as.numeric(ifelse(grepl("Palearctic", realm, ignore.case = TRUE),'1','0'))) %>%
+  mutate(cosmopolitanness = rowSums(.[46:53])) %>%
+  mutate(cosmopolitanness, ifelse(is.na(cosmopolitanness), 0, cosmopolitanness))
+
+realmsplot <- realms %>%
+  group_by(EOODataAvailable) %>%
+  summarise(across(45:52, ~ sum(.x > 0))) %>%
+  pivot_longer(cols= `Afrotropical`:`Palearctic`, names_to = "realm", values_to = "totalspecies") %>%
+  ggplot(aes(x = realm, y=totalspecies, fill = EOODataAvailable)) +
+  geom_bar(position= "dodge", stat= "identity") +
+  scale_fill_manual(name = "EOODataAvailable", values = c("#7D5D3A", "#53619E", "grey")) +
+  scale_y_log10() +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(y = "Total Count of Species that possibly fall into realm (log10)", x = "IUCN Biogeographic Realm") +
+  guides(fill=guide_legend("Drought Data Availability"))
+plot(realmsplot)
+
+cosmopolitannessplot <- ggplot(data =realms, aes(as.factor(cosmopolitanness), fill = EOODataAvailable)) +
+  geom_bar(position= "dodge") +
+  scale_fill_manual(name = "EOODataAvailable", values = c("#7D5D3A", "#53619E", "grey")) +
+  scale_y_log10() +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(y = "Species Count (log10 transformed)", x = "Total Number of IUCN Biogeographic Realms a species occcurs in") +
+  guides(fill=guide_legend("Drought Data Availability"))
+plot(cosmopolitannessplot)
+
+```
+
+<br>
+
+Again - our data cover a nice amount of areas of the globe and levels of "cosmopolitanness"
+
+
+<br>
+
+### Aquatic plants (and species' "system") 
+ 
+```{r, message = F, output = F}
+ 
+#Marine Species with Droughtdata
+ 
+sum(fullDroughtIUCNdata$EOODataAvailable == "AvailableEOO" & fullDroughtIUCNdata$systems == "Marine", na.rm=TRUE)
+#143 species
+ 
+#Freshwater species with drought data
+sum(fullDroughtIUCNdata$EOODataAvailable == "AvailableEOO" & fullDroughtIUCNdata$systems == "Freshwater (=Inland waters)", na.rm=TRUE)
+#764! a lot...
+
+#Terrestrial/Freshwater species with drought data
+sum(fullDroughtIUCNdata$EOODataAvailable == "AvailableEOO" & fullDroughtIUCNdata$systems == "Terrestrial|Freshwater (=Inland waters)", na.rm=TRUE)
+#926! a lot...
+
+#Terrestrial/marine species with drought data
+sum(fullDroughtIUCNdata$EOODataAvailable == "AvailableEOO" & fullDroughtIUCNdata$systems == "Terrestrial|Marine", na.rm=TRUE)
+#50
+
+#Terrestrial/Freshwater/Marine species with drought data
+sum(fullDroughtIUCNdata$EOODataAvailable == "AvailableEOO" & fullDroughtIUCNdata$systems == "Terrestrial|Freshwater (=Inland waters)|Marine", na.rm=TRUE)
+#22
+```
+<br>
+
+Quick bargraphs
+ 
+<br>
+
+```{r}
+speciessystems <- ggplot(data=fullDroughtIUCNdata, aes(systems, fill = EOODataAvailable)) +
+  geom_bar(position= "dodge") +
+  scale_fill_manual(name = "EOODataAvailable", values = c("#7D5D3A", "#53619E", "grey")) +
+  scale_y_log10() +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(y = "Count of Species (log10 transformed)", x = "Habitat Type (IUCN defined)") +
+  guides(fill=guide_legend("Drought Data Availability"))
+plot(speciessystems)
+```
+Aquatic plants problems: 
+
+<br>
+
+1) There are "freshwater" plants (764 species with Extents of Occurrence) that are included in the IUCN list AND our drought list - some of which ACTUALLY occupy water, some of which don't (grow along streams/rivers etc) and some of which can do both (juvenile in water and adult on land and vice versa) - what to do here as these plants may not actually be under "Drought" threat by the drought metrics we are using
+
+<br>
+ 
+2) Similar with "marine" plants (143 species with extents of occurrence) as above - but less are "both" or land dwelling near coast and more are actual sea grasses and other aquatic plants
+
+<br>
+
+3) Also related - there's these groups called "terrestrial/freshwater" (926 species with extents of occurrence) and "terrestrial/marine" (50 species with EOOs) and all three (22 species with EOOs) with a lot of species that have drought data! 
+
+<br>
+
+ 
+What to do for all of these aquatic plant cases - This is a total of 1884 species out of ~10,000... so a decent chunk. Do we look through one by one in their "habitat" description to select if they are aquatic or not? A lot of work! &#128128; &#128565; &#x1F635;
+
+Our solution - download growth form data from TRY - pull as much as possible of aquatic ONLY (still include plants that could be terrestrial as well because they will still be affected by drought) plant data and remove these species - THEN for the species leftover - remove any species that are in realms that are ONLY "marine" or "freshwater" or "marine/freshwater"
+
+^Note as that all these estimates were made based on the species with EOO data - we also have this problem with species point range data, so we're just generally pulling all the "aquaticness" data for all our species to remove wholly aquatic plants from the main EOO analysis and the supplementary point range analysis 
+
+First we download plant growth form from TRY
+```{r}
+#load in the TRY data that is growth form (four different types of data)
+growthform <- fread("Data/32845.txt", fill = TRUE)
+
+#this is a huge dataset with lots of values and is just generally extremely messy - first discovered that the value with most information is the "growth form complete" value
+
+growthformcomplete <- growthform %>%
+  filter(OriglName == "growth form complete") %>%
+  dplyr::rename(scientificName = SpeciesName)
+  
+droughtdatawithgrowthform1 <- left_join(Bothdroughtmethods, growthformcomplete, by = "scientificName") %>%
+  select(1:31, OrigValueStr, Reference, EOODataAvailable) %>%
+  dplyr::rename(GrowthForm = OrigValueStr) %>%
+  dplyr::rename(ReferenceforGrowthForm = Reference) %>%
+  distinct(scientificName, .keep_all = TRUE)
+
+#this data gives us around 54% of all species growth forms in our drought dataset
+
+#now to try and fill in the gaps here - run the same thing with other growth-form metrics
+
+#take just the species that haven't been covered by that dataset
+
+growthformnotcovered1 <- droughtdatawithgrowthform1 %>%
+  filter(is.na(GrowthForm))
+
+#left_join this with some growth form data - pull anything called growth form from TRY
+
+growthformany <- growthform %>%
+  dplyr::rename(scientificName = SpeciesName) %>%
+  filter(str_detect(OriglName, "(?i)growth form|(?i)growthform|(?i)growth_form")) %>%
+  filter(OriglName != "growth form complete") #remove growth forms that are already accounted for
+
+#join this back with previous data to just have info for our species
+
+droughtdatawithgrowthform2 <- left_join(growthformnotcovered1, growthformany, by = "scientificName") %>%
+  select(1:31, OrigValueStr, Reference, EOODataAvailable) %>%
+  dplyr::rename(GrowthForm = OrigValueStr) %>%
+  dplyr::rename(ReferenceforGrowthForm = Reference) %>%
+  distinct(scientificName, .keep_all = TRUE)
+
+growthformnotcovered2 <- droughtdatawithgrowthform2 %>%
+  filter(is.na(GrowthForm))  
+
+## covered around 17,000 more species but we still have 7500 with missing data
+
+#try other data types e.g. "habit"
+
+habit <- growthform %>%
+  dplyr::rename(scientificName = SpeciesName) %>%
+  filter(str_detect(OriglName, "(?i)habit")) %>%
+  filter(!str_detect(OriglName, "(?i)habitat|(?i)microhabit")) #trying species habit but not habitat or microhabitat
+
+droughtdatawithgrowthform3 <- left_join(growthformnotcovered2, habit, by = "scientificName") %>%
+  select(1:31, OrigValueStr, Reference, EOODataAvailable) %>%
+  dplyr::rename(GrowthForm = OrigValueStr) %>%
+  dplyr::rename(ReferenceforGrowthForm = Reference) %>%
+  distinct(scientificName, .keep_all = TRUE)
+
+growthformnotcovered3 <- droughtdatawithgrowthform3 %>%
+  filter(is.na(GrowthForm))  
+
+#plant habit covered only a few species in our list - still a lot to go
+
+# try "life form" or "plant form" 
+
+formvague <- growthform %>%
+  dplyr::rename(scientificName = SpeciesName) %>%
+  filter(str_detect(OriglName, "(?i)L-form|(?i)life form|(?i)life_form|(?i)life stage|(?i)main_growth_form|(?i)plant form|(?i)SpeciesLifeForm"))
+
+droughtdatawithgrowthform4 <- left_join(growthformnotcovered3, formvague, by = "scientificName") %>%
+  select(1:31, OrigValueStr, Reference, EOODataAvailable) %>%
+  dplyr::rename(GrowthForm = OrigValueStr) %>%
+  dplyr::rename(ReferenceforGrowthForm = Reference) %>%
+  distinct(scientificName, .keep_all = TRUE)
+
+growthformnotcovered4 <- droughtdatawithgrowthform4 %>%
+  filter(is.na(GrowthForm))  
+
+##and life form gave us 20ish more species... still going...
+
+#tried a whole bunch of others but clear that out species aren't necessarily covered for their growth form in this TRY data no matter which way you slice the growth form data
+
+# so now just checking what realms these remaining species that we don't know the growth form of are
+
+# merge all that info back together
+
+
+df_list <- list(filter(droughtdatawithgrowthform1, !is.na(GrowthForm)),
+                filter(droughtdatawithgrowthform2, !is.na(GrowthForm)), 
+                filter(droughtdatawithgrowthform3, !is.na(GrowthForm)),
+                filter(droughtdatawithgrowthform4, !is.na(GrowthForm)),
+                growthformnotcovered4)
+
+fulldroughtandgrowthform <- df_list %>%
+  reduce(full_join, by=c('scientificName', 'duration_245_proportion_non_robust', 'duration_245_proportion_positive_value', 'duration_245_proportion_negative_value', 'duration_245_min', 'duration_245_max', 'duration_245_mean', 'duration_245_stdev', 'duration_585_proportion_non_robust', 'duration_585_proportion_positive_value', 'duration_585_proportion_negative_value', 'duration_585_min', 'duration_585_max', 'duration_585_mean', 'duration_585_stdev', 'frequency_245_proportion_non_robust', 'frequency_245_proportion_positive_value', 'frequency_245_proportion_negative_value', 'frequency_245_min', 'frequency_245_max', 'frequency_245_mean', 'frequency_245_stdev', 'frequency_585_proportion_non_robust', 'frequency_585_proportion_positive_value', 'frequency_585_proportion_negative_value', 'frequency_585_min', 'frequency_585_max', 'frequency_585_mean', 'frequency_585_stdev',  'eoo_km2', 'GrowthForm', 'ReferenceforGrowthForm', 'EOODataAvailable'))
+
+# now put this back with IUCN habitat types and see the spread of species left that don't have growth form data on TRY
+
+fullDroughtIUCNgrowthformdata <- left_join(fulldroughtandgrowthform, fullDroughtIUCNdata, by = "scientificName") %>%
+  mutate(Aquatic = ifelse(grepl("aqua|float", GrowthForm, ignore.case = TRUE),'yes',
+                          ifelse(systems == "Freshwater (=Inland waters)" | systems == "Marine" & is.na(GrowthForm), 'yes', 'no'))) %>% #make a column for if the species is aquatic or not
+  mutate(Aquatic = ifelse(is.na(Aquatic), 'yes', Aquatic))
+
+#great now we can remove the plants that are specifically "aquatic" using these methods (933 species)
+```
+
+<br>
+
+Quick plot for aquatic plants specifically
+
+```{r}
+aquaticnessplot <- ggplot(data = fullDroughtIUCNgrowthformdata, aes(Aquatic, fill = Aquatic)) +
+  geom_bar(position= "dodge") +
+  scale_fill_manual(name = "Aquatic", values = c("#7D5D3A", "#53619E")) +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(y = "Species Count (log10 transformed)", x = "") +
+  guides(fill="none")
+plot(aquaticnessplot)
+```
+
+<br> 
+Removing these aquatic plants and saving the relevant data for later!
+
+```{r}
+finaldroughtIUCNdata <- fullDroughtIUCNgrowthformdata %>%
+  filter(Aquatic == "no") %>%
+  select(1:49, 81)
+
+write.csv(finaldroughtIUCNdata, "Data/Data Used in Analyses/droughtdataforanalyses.csv")
+```
+
+
