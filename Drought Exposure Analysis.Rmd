@@ -222,8 +222,8 @@ First create a barplot for the overall trend to show the bounded data, then pull
 
 #SSP 2-4.5
 SpeciesScenariosDuration245 <- droughtdatarobust %>%
-  filter(redlistCategory == 'Critically Endangered' | redlistCategory == 'Endangered' | redlistCategory == 'Vulnerable') %>%
-  filter(!duration_245_proportion_non_robust.x ==1) %>%
+  filter(redlistCategory == 'Critically Endangered' | redlistCategory == 'Endangered' | redlistCategory == 'Vulnerable') %>% #filtering for just threatened species
+  filter(!duration_245_proportion_non_robust.x ==1) %>% #removing species that have their range entirely in non-robust areas
   mutate(Scenario = ifelse(duration_245_proportion_positive_value.x == 1, " increaseAll",
                            ifelse(duration_245_proportion_positive_value.x > 0 & duration_245_proportion_positive_value.x < 1 & duration_245_proportion_negative_value.x ==0, " increaseSome",
                                   ifelse(duration_245_proportion_positive_value.x > 0 & duration_245_proportion_negative_value.x > 0, "bothSome",
@@ -302,7 +302,7 @@ BothScenariosData <- bind_rows(SpeciesScenariosDuration245bounded, SpeciesScenar
 #violins
 proportiondroughtdurationincreasingordecreasingviolin <- BothScenariosData %>%
   ggplot(aes(x = positiveornegative, y = proportion, fill = fct_rev(positiveornegative), color = fct_rev(positiveornegative), alpha = SSP)) +
-  geom_violin(position = "identity", width = 1.6) +
+  geom_violin(position = "identity", width = 1.1) +
   scale_x_discrete(labels=c("Decrease in Drought Duration", "Increase in Drought Duration")) +
   stat_summary(
     fun.data = "mean_sdl",  fun.args = list(mult = 1), 
@@ -324,12 +324,14 @@ durationdotplotdata245 <- SpeciesScenariosDuration245 %>%
   dplyr::rename(Scenario245 = Scenario) %>% 
   select(scientificName, duration_245_proportion_positive_value.x, duration_245_proportion_negative_value.x) %>%
   pivot_longer(!scientificName, names_to = "positiveornegative", values_to = "proportion") %>%
+  mutate(positiveornegative = ifelse(positiveornegative == "duration_245_proportion_positive_value.x", "positive", "negative")) %>%
   mutate(SSP = "245")
 
 durationdotplotdata585 <- SpeciesScenariosDuration585 %>%
   filter(Scenario == " increaseAll" | Scenario == "decreaseAll") %>%
   select(scientificName, duration_585_proportion_positive_value.x, duration_585_proportion_negative_value.x) %>%
   pivot_longer(!scientificName, names_to = "positiveornegative", values_to = "proportion") %>%
+  mutate(positiveornegative = ifelse(positiveornegative == "duration_585_proportion_positive_value.x", "positive", "negative")) %>%
   mutate(SSP = "585")
 
 #join both scenarios data together
@@ -337,12 +339,14 @@ durationdotplotdata <- bind_rows(durationdotplotdata245, durationdotplotdata585)
 
 #draw dot plot
 durationdotplot <- durationdotplotdata %>%
-  filter()
-  ggplot(aes(x = positiveornegative, y = proportion, fill = SSP, color = SSP)) +
-  geom_quasirandom(aes(x = positiveornegative, y = proportion, fill = SSP, color = SSP)) +
+  ggplot(aes(x = positiveornegative, y = proportion)) +
+  geom_jitter(aes(x = positiveornegative, y = proportion), alpha = 0.01, size = 3, height = 0, width = 0.45) +
   scale_x_discrete(labels=c("Decrease in Drought Duration", "Increase in Drought Duration")) +
-  guides(fill="none", color = "none")
+  guides(fill="none", color = "none") +
+  theme_classic()
 durationdotplot
+
+ggsave(plot= durationdotplot, filename = "Outputs/DurationDotPlot.jpeg",  device = "jpeg", width = 8, height = 9)
 ```
 <br>
 Some key stats from above figures:
@@ -690,6 +694,36 @@ proportiondroughtfrequencyincreasingordecreasingviolin <- BothScenariosData %>%
 proportiondroughtfrequencyincreasingordecreasingviolin
 
 ggsave(plot= proportiondroughtfrequencyincreasingordecreasingviolin, filename = "Outputs/FrequencyViolin.jpeg",  device = "jpeg", width = 10, height = 7)
+
+# creating dot plots of the 1's and 0's of proportion to overlay on the violin plots
+freqauencydotplotdata245 <- SpeciesScenariosfrequency245 %>%
+  filter(Scenario == " increaseAll" | Scenario == "decreaseAll") %>% #first selecting just the 1s and 0s of SSP245
+  dplyr::rename(Scenario245 = Scenario) %>% 
+  select(scientificName, frequency_245_proportion_positive_value.x, frequency_245_proportion_negative_value.x) %>%
+  pivot_longer(!scientificName, names_to = "positiveornegative", values_to = "proportion") %>%
+  mutate(positiveornegative = ifelse(positiveornegative == "frequency_245_proportion_positive_value.x", "positive", "negative")) %>%
+  mutate(SSP = "245")
+
+durationdotplotdata585 <- SpeciesScenariosDuration585 %>%
+  filter(Scenario == " increaseAll" | Scenario == "decreaseAll") %>%
+  select(scientificName, duration_585_proportion_positive_value.x, duration_585_proportion_negative_value.x) %>%
+  pivot_longer(!scientificName, names_to = "positiveornegative", values_to = "proportion") %>%
+  mutate(positiveornegative = ifelse(positiveornegative == "duration_585_proportion_positive_value.x", "positive", "negative")) %>%
+  mutate(SSP = "585")
+
+#join both scenarios data together
+durationdotplotdata <- bind_rows(durationdotplotdata245, durationdotplotdata585) #joining both dataframes together
+
+#draw dot plot
+durationdotplot <- durationdotplotdata %>%
+  ggplot(aes(x = positiveornegative, y = proportion)) +
+  geom_jitter(aes(x = positiveornegative, y = proportion), alpha = 0.01, size = 3, height = 0, width = 0.45) +
+  scale_x_discrete(labels=c("Decrease in Drought Duration", "Increase in Drought Duration")) +
+  guides(fill="none", color = "none") +
+  theme_classic()
+durationdotplot
+
+ggsave(plot= durationdotplot, filename = "Outputs/DurationDotPlot.jpeg",  device = "jpeg", width = 8, height = 9)
 ```
 <br>
 
