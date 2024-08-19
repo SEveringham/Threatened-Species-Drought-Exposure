@@ -37,13 +37,18 @@ droughtdata <- read.csv("Data/Raw Data/drought_metrics_compile_20240510.csv") %>
 droughtdatapoints <- read.csv("Data/Raw Data/drought_metrics_compile_points_20240607.csv") %>%
   dplyr::rename(scientificName = species_name) %>%
   mutate(EOODataAvailable = "AvailablePoint")
+
+#and finally reading in the data which we have xylem functional traits for (https://xylemfunctionaltraits.org/)
+xylemtraits <- read.csv("Data/Raw Data/Xylem Functional Traits.csv", na.strings=c("","NA")) %>%
+  unite(scientificName, c("Cleaned.genus", "Cleaned.species"), sep = " ", remove = FALSE)
 ```
 
 ## Join data
 ```{r, message = F}
 Bothdroughtmethods <- bind_rows(droughtdata, droughtdatapoints)
 fullDroughtIUCNdata <- left_join(plantsonIUCN, Bothdroughtmethods) %>%
-  mutate(EOODataAvailable = ifelse(is.na(EOODataAvailable), "NotAvailable", EOODataAvailable))
+  mutate(EOODataAvailable = ifelse(is.na(EOODataAvailable), "NotAvailable", EOODataAvailable)) %>%
+  left_join(., xylemtraits, by = "scientificName")
 ```
 
 ## Some interesting checks of the IUCN data 
@@ -58,7 +63,7 @@ howmuchdatawegot <- ggplot(data=fullDroughtIUCNdata, aes(EOODataAvailable, fill 
   scale_fill_manual(name = "EOODataAvailable", values = c("#7D5D3A", "#53619E", "grey")) +
   theme_classic() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  labs(y = "Count of Species (log10 transformed)", x = "Drought Data Availability") +
+  labs(y = "Count of Species", x = "Drought Data Availability") +
   guides(fill="none")
 plot(howmuchdatawegot)
 ```
@@ -368,3 +373,25 @@ write.csv(finaldroughtIUCNdata, "Data/Data Used in Analyses/droughtdataforanalys
 ```
 
 
+## Some interesting checks of the xylem traits data
+
+How many species on the IUCN have p50 data?
+```{r}
+p50graph <- fullDroughtIUCNdata %>%
+  mutate(p50available = ifelse(is.na(P50..MPa.), "no", "yes")) %>%
+  ggplot(aes(p50available, fill = EOODataAvailable)) +
+  geom_bar(position= "dodge") +
+  scale_fill_manual(name = "EOODataAvailable", values = c("#7D5D3A", "#53619E", "grey")) +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(y = "Count of Species", x = "p50 Data Availability") +
+  geom_text(stat = "count", aes(label = after_stat(count)), position = position_dodge(width = 0.9)) 
+p50graph
+```
+
+It is evident that very limited numbers of species have p50 data:
+
+- only 923 species (or ~66000) on the IUCN have any p50 data
+- only 191 of these have EOO data as well
+- only 260 of these have AOO data as well
+- 472 have no spatial data but have p50 data
