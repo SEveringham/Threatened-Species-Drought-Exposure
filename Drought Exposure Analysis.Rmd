@@ -206,6 +206,16 @@ plot(categoriescountsplot)
 ggsave(plot= categoriescountsplot, filename = "Outputs/categoriespie.jpeg",  device = "jpeg", width = 10, height = 10)
 ```
 
+Save a dataframe of the species names that are threatened and have robust drought data to use for future database mining (one variable of just the species' names is much easier to handle than the whole data frame)
+
+```{r}
+speciesnames <- droughtdatarobust %>%
+  filter(redlistCategory == 'Critically Endangered' | redlistCategory == 'Endangered' | redlistCategory == 'Vulnerable') %>%
+  select(scientificName) 
+
+write.csv(speciesnames, "Data/Data Used in Analyses/threatenedspecieslist.csv")
+```
+
 
 With these species let's have a look at their proportion of distribution in future drought projection changes.
 
@@ -654,7 +664,7 @@ ggsave(plot= StatsPlotBothSSPsfreq, filename = "Outputs/FrequencyBarPlot.jpeg", 
 
 #first tweak data in bothscenarios
 
-SpeciesScenariosfrequency245 <- SpeciesScenariosfrequency245 %>%
+SpeciesScenariosfrequency245long <- SpeciesScenariosfrequency245 %>%
   filter(!Scenario == " increaseAll") %>%
   filter(!Scenario == "decreaseAll") %>%
   select(scientificName, frequency_245_proportion_positive_value.x, frequency_245_proportion_negative_value.x) %>%
@@ -663,7 +673,7 @@ SpeciesScenariosfrequency245 <- SpeciesScenariosfrequency245 %>%
   mutate(positiveornegative = ifelse(positiveornegative == "frequency_245_proportion_positive_value.x", "positive", "negative")) %>%
   mutate(SSP = "245")
 
-SpeciesScenariosfrequency585 <- SpeciesScenariosfrequency585 %>%
+SpeciesScenariosfrequency585long <- SpeciesScenariosfrequency585 %>%
   filter(!Scenario == " increaseAll") %>%
   filter(!Scenario == "decreaseAll") %>%
   select(scientificName, frequency_585_proportion_positive_value.x, frequency_585_proportion_negative_value.x) %>%
@@ -674,7 +684,7 @@ SpeciesScenariosfrequency585 <- SpeciesScenariosfrequency585 %>%
 
 #then bind data
 
-BothScenariosData <- bind_rows(SpeciesScenariosfrequency245, SpeciesScenariosfrequency585)
+BothScenariosData <- bind_rows(SpeciesScenariosfrequency245long, SpeciesScenariosfrequency585long)
 
 #violins
 proportiondroughtfrequencyincreasingordecreasingviolin <- BothScenariosData %>%
@@ -696,7 +706,7 @@ proportiondroughtfrequencyincreasingordecreasingviolin
 ggsave(plot= proportiondroughtfrequencyincreasingordecreasingviolin, filename = "Outputs/FrequencyViolin.jpeg",  device = "jpeg", width = 10, height = 7)
 
 # creating dot plots of the 1's and 0's of proportion to overlay on the violin plots
-freqauencydotplotdata245 <- SpeciesScenariosfrequency245 %>%
+frequencydotplotdata245 <- SpeciesScenariosfrequency245 %>%
   filter(Scenario == " increaseAll" | Scenario == "decreaseAll") %>% #first selecting just the 1s and 0s of SSP245
   dplyr::rename(Scenario245 = Scenario) %>% 
   select(scientificName, frequency_245_proportion_positive_value.x, frequency_245_proportion_negative_value.x) %>%
