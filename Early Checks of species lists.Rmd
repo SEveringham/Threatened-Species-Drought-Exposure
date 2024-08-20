@@ -19,6 +19,7 @@ library(tidyverse)
 library(rredlist)
 library(data.table)
 library(reshape)
+library(ggridges)
 ```
 
 ## Read in Data
@@ -138,12 +139,12 @@ realms <- fullDroughtIUCNdata %>%
   mutate(Neotropical = as.numeric(ifelse(grepl("Neotropical", realm, ignore.case = TRUE),'1','0'))) %>%
   mutate(Oceanian = as.numeric(ifelse(grepl("Oceanian", realm, ignore.case = TRUE),'1','0'))) %>%
   mutate(Palearctic = as.numeric(ifelse(grepl("Palearctic", realm, ignore.case = TRUE),'1','0'))) %>%
-  mutate(cosmopolitanness = rowSums(.[46:53])) %>%
+  mutate(cosmopolitanness = rowSums(.[228:235])) %>%
   mutate(cosmopolitanness, ifelse(is.na(cosmopolitanness), 0, cosmopolitanness))
 
 realmsplot <- realms %>%
   group_by(EOODataAvailable) %>%
-  summarise(across(45:52, ~ sum(.x > 0))) %>%
+  summarise(across(227:235, ~ sum(.x > 0))) %>%
   pivot_longer(cols= `Afrotropical`:`Palearctic`, names_to = "realm", values_to = "totalspecies") %>%
   ggplot(aes(x = realm, y=totalspecies, fill = EOODataAvailable)) +
   geom_bar(position= "dodge", stat= "identity") +
@@ -151,7 +152,7 @@ realmsplot <- realms %>%
   scale_y_log10() +
   theme_classic() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  labs(y = "Total Count of Species that possibly fall into realm (log10)", x = "IUCN Biogeographic Realm") +
+  labs(y = "Total Count of Species that possibly fall into realm", x = "IUCN Biogeographic Realm") +
   guides(fill=guide_legend("Drought Data Availability"))
 plot(realmsplot)
 
@@ -384,8 +385,7 @@ p50graph <- fullDroughtIUCNdata %>%
   scale_fill_manual(name = "EOODataAvailable", values = c("#7D5D3A", "#53619E", "grey")) +
   theme_classic() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  labs(y = "Count of Species", x = "p50 Data Availability") +
-  geom_text(stat = "count", aes(label = after_stat(count)), position = position_dodge(width = 0.9)) 
+  labs(y = "Count of Species", x = "p50 Data Availability")
 p50graph
 ```
 
@@ -395,3 +395,21 @@ It is evident that very limited numbers of species have p50 data:
 - only 191 of these have EOO data as well
 - only 260 of these have AOO data as well
 - 472 have no spatial data but have p50 data
+
+Having a quick look at the spread of this p50 data
+```{r}
+p50plot <- fullDroughtIUCNdata %>%
+  mutate(dummy = "dummy") %>%
+  ggplot(aes(y= dummy,x = as.numeric(P50..MPa.), fill = "#7D5D3A")) +
+  geom_density_ridges(scale = 2, alpha = 0.8, quantile_lines = T, quantile_fun = mean,
+    jittered_points = TRUE,
+    vline_width = 1, vline_color = "black",
+    point_size = 1.2, point_alpha = 0.2, point_color = "black", 
+    position = position_raincloud(adjust_vlines = FALSE, height = 0.18)) +
+  theme_classic() +
+  guides(fill = "none") +
+  labs(y = "", x = "p50 (MPa)")
+p50plot
+```
+
+We could think about other xylem functional traits too?
