@@ -1,0 +1,50 @@
+---
+title: "Drought Adaptive Capacity Analysis"
+output:
+  html_document:
+    theme: flatly
+    toc: yes
+    toc_float: yes
+  pdf_document:
+    toc: yes
+  word_document:
+    toc: yes
+date: "2024-05-16"
+---
+
+
+```{r, include=FALSE}
+options(width = 60)
+local({
+  hook_output <- knitr::knit_hooks$get('output')
+  knitr::knit_hooks$set(output = function(x, options) {
+    if (!is.null(options$max.height)) options$attr.output <- c(
+      options$attr.output,
+      sprintf('style="max-height: %s;"', options$max.height)
+    )
+    hook_output(x, options)
+  })
+})
+```
+
+## Libraries required
+
+```{r, message = F, warning = F}
+library(tidyverse)
+library(ggplot2)
+library(Hmisc)
+library(ggridges)
+library(emmeans)
+library(ggbeeswarm)
+```
+
+## Read in data
+```{r}
+#read in the data and remove the aquatic species
+#there is a better way to do this aquatic nonsense 
+droughtandxylemdatafull <- read.csv("Data/Data Used in Analyses/fulldroughtwithxylemdata.csv") %>%
+  filter(!systems == "Freshwater (=Inland waters)") %>%
+  filter(!systems == "Marine") %>%
+  filter(!systems == "Freshwater (=Inland waters)|Marine")
+
+```
