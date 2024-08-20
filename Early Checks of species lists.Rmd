@@ -50,6 +50,9 @@ Bothdroughtmethods <- bind_rows(droughtdata, droughtdatapoints)
 fullDroughtIUCNdata <- left_join(plantsonIUCN, Bothdroughtmethods) %>%
   mutate(EOODataAvailable = ifelse(is.na(EOODataAvailable), "NotAvailable", EOODataAvailable)) %>%
   left_join(., xylemtraits, by = "scientificName")
+
+#save this full massive dataframe for later
+write.csv(fullDroughtIUCNdata, "Data/Data Used in Analyses/fulldroughtwithxylemdata.csv")
 ```
 
 ## Some interesting checks of the IUCN data 
@@ -243,7 +246,7 @@ Our solution - download growth form data from TRY - pull as much as possible of 
 First we download plant growth form from TRY
 ```{r}
 #load in the TRY data that is growth form (four different types of data)
-growthform <- fread("Data/32845.txt", fill = TRUE)
+growthform <- fread("Data/32845.txt", select = c("OrigValueStr", "Reference"))
 
 #this is a huge dataset with lots of values and is just generally extremely messy - first discovered that the value with most information is the "growth form complete" value
 
