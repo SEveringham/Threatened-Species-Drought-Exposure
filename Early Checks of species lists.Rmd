@@ -143,12 +143,12 @@ realms <- fullDroughtIUCNdata %>%
   mutate(Neotropical = as.numeric(ifelse(grepl("Neotropical", realm, ignore.case = TRUE),'1','0'))) %>%
   mutate(Oceanian = as.numeric(ifelse(grepl("Oceanian", realm, ignore.case = TRUE),'1','0'))) %>%
   mutate(Palearctic = as.numeric(ifelse(grepl("Palearctic", realm, ignore.case = TRUE),'1','0'))) %>%
-  mutate(cosmopolitanness = rowSums(.[228:235])) %>%
+  mutate(cosmopolitanness = rowSums(.[47:54])) %>%
   mutate(cosmopolitanness, ifelse(is.na(cosmopolitanness), 0, cosmopolitanness))
 
 realmsplot <- realms %>%
   group_by(EOODataAvailable) %>%
-  summarise(across(227:235, ~ sum(.x > 0))) %>%
+  summarise(across(46:54, ~ sum(.x > 0))) %>%
   pivot_longer(cols= `Afrotropical`:`Palearctic`, names_to = "realm", values_to = "totalspecies") %>%
   ggplot(aes(x = realm, y=totalspecies, fill = EOODataAvailable)) +
   geom_bar(position= "dodge", stat= "identity") +
@@ -253,7 +253,7 @@ All of this working has been done in a separate Rmarkdown as the file from TRY i
 How many species on the IUCN have p50 data?
 ```{r}
 p50graph <- fullDroughtIUCNdata %>%
-  mutate(p50available = ifelse(is.na(P50..MPa.), "no", "yes")) %>%
+  mutate(p50available = ifelse(is.na(p50), "no", "yes")) %>%
   ggplot(aes(p50available, fill = EOODataAvailable)) +
   geom_bar(position= "dodge") +
   scale_fill_manual(name = "EOODataAvailable", values = c("#7D5D3A", "#53619E", "grey")) +
@@ -265,7 +265,7 @@ p50graph
 
 It is evident that very limited numbers of species have p50 data:
 
-- only 923 species (or ~66000) on the IUCN have any p50 data
+- only 923 species (of ~66000) on the IUCN have any p50 data
 - only 191 of these have EOO data as well
 - only 260 of these have AOO data as well
 - 472 have no spatial data but have p50 data
@@ -274,7 +274,7 @@ Having a quick look at the spread of this p50 data
 ```{r}
 p50plot <- fullDroughtIUCNdata %>%
   mutate(dummy = "dummy") %>%
-  ggplot(aes(y= dummy,x = as.numeric(P50..MPa.), fill = "#7D5D3A")) +
+  ggplot(aes(y= dummy,x = as.numeric(p50), fill = "#7D5D3A")) +
   geom_density_ridges(scale = 2, alpha = 0.8, quantile_lines = T, quantile_fun = mean,
     jittered_points = TRUE,
     vline_width = 1, vline_color = "black",
