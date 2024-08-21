@@ -631,7 +631,7 @@ SpeciesScenariosCountfrequency245 <- SpeciesScenariosfrequency245 %>%
   mutate(Metric = "frequency") %>%
   dplyr::rename(NumberofSpecies = `length(frequency_245_proportion_non_robust)`) %>%
   mutate(SSP = "245") %>%
-  mutate(total = 2151)
+  mutate(total = sum(NumberofSpecies))
 
 #SSP 5-8.5
 SpeciesScenariosfrequency585 <- droughtdatarobust %>%
@@ -647,9 +647,9 @@ SpeciesScenariosCountfrequency585 <- SpeciesScenariosfrequency585 %>%
   group_by(Scenario) %>%
   summarise(length(frequency_585_proportion_non_robust)) %>%
   mutate(Metric = "frequency") %>%
-  rename(NumberofSpecies = `length(frequency_585_proportion_non_robust)`) %>%
+  dplyr::rename(NumberofSpecies = `length(frequency_585_proportion_non_robust)`) %>%
   mutate(SSP = "585") %>%
-  mutate(total = 2323)
+  mutate(total = sum(NumberofSpecies))
 
 #bind rows to get both scenarios together for a stacked barplot
 
