@@ -39,17 +39,18 @@ library(ggbeeswarm)
 
 ## Read in data
 ```{r}
-droughtdatafull <- read.csv("Data/Data Used in Analyses/fulldroughtwithxylemdata.csv")
+droughtdatasaved <- read.csv("Data/Data Used in Analyses/fulldroughtwithxylemdata.csv")
 growthform <- read.csv("Data/Data Used in Analyses/fullIUCNandgrowthform.csv")
 
-droughtdatafull <- left_join(droughtdatafull, growthform, by = 'scientificName') %>%
-  filter(!Aquatic == "yes") #subset just without aquatic plants - this gives us 65746 non-aquatic species on IUCN
+droughtdatafull <- left_join(droughtdatasaved, growthform, by = 'scientificName') %>%
+  filter(!Aquatic == "yes") #remove the aquatic species - gives us 65746 terrestrial plants on IUCN
 
 droughtdata <- droughtdatafull %>%
-  filter(EOODataAvailable == "AvailableEOO") #then subset species with EOO data - gives us 10131 species 
+  filter(EOODataAvailable == "AvailableEOO") #subset just EOO data - gives us 10131 species
 
+≈
 pointdroughtdata <- droughtdatafull %>%
-  filter(EOODataAvailable == "AvailablePoint") #then subset species with AOO data - gives us 36262 species
+  filter(EOODataAvailable == "AvailablePoint") #subset just AOO data - gives us 36262 species
 ```
 
 ## Sourcing Functions
@@ -154,6 +155,7 @@ sum(droughtdata$duration_245_proportion_non_robust == 1 &
       droughtdata$duration_585_proportion_non_robust == 1 &
       droughtdata$frequency_245_proportion_non_robust == 1 &
       droughtdata$frequency_585_proportion_non_robust == 1)
+
 #2484 species have no range in robust drought projection areas for either scenario for either duration or frequency of drought
 
 #remove these species where there is no range at all in robust areas
