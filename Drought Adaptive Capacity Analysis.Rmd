@@ -46,5 +46,30 @@ droughtandxylemdatafull <- read.csv("Data/Data Used in Analyses/fulldroughtwithx
   filter(!systems == "Freshwater (=Inland waters)") %>%
   filter(!systems == "Marine") %>%
   filter(!systems == "Freshwater (=Inland waters)|Marine")
-
 ```
+
+## Check differences in p50 for threatened vs non-threatened species
+```{r}
+p50threatenedgraph <- droughtandxylemdatafull %>%
+  filter(!redlistCategory == 'Data Deficient' & !redlistCategory == 'Extinct in the Wild' & !redlistCategory == 'Extinct' & !is.na(redlistCategory)) %>%
+  mutate(redlistCategory= if_else(.$redlistCategory %in% c('Critically Endangered','Endangered', 'Vulnerable'), redlistCategory, "ynot threatened")) %>%
+  ggplot(aes(x = P50..MPa., y = redlistCategory, fill = redlistCategory)) +
+  geom_density_ridges(scale = 0.7, alpha = 0.8, quantile_lines = T, quantile_fun = mean,
+    jittered_points = TRUE,
+    vline_size = 1, vline_color = "black",
+    point_size = 1.2, point_alpha = 0.2, point_color = "black", 
+    position = position_raincloud(adjust_vlines = FALSE, height = 0.18)) + 
+  scale_y_discrete(expand = c(0, 0)) +     # will generally have to set the `expand` option
+  scale_x_continuous(expand = c(0, 0)) +   # for both axes to remove unneeded padding
+  coord_cartesian(clip = "off") + # to avoid clipping of the very top of the top ridgeline
+  scale_fill_manual(values = c("#D52001", "#FC7F3F", "#F9E814", "#60c659")) +
+  guides(fill = "none") +
+  xlab("Mean Drought Duration Change for SSP 2-4.5 Projection (months)") +
+  ylab("") +
+  theme_ridges() +
+  geom_vline(xintercept = 0, size =1, color = "black", linetype = "dashed") +
+  xlim(-15, 0)
+
+p50threatenedgraph
+```
+
