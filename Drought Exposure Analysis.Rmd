@@ -180,7 +180,7 @@ threatdata <- droughtdatarobust %>%
   mutate(threatened = if_else(redlistCategory.x == "Critically Endangered", "Yes",
                               if_else(redlistCategory.x == "Endangered", "Yes",
                                       if_else(redlistCategory.x == "Vulnerable", "Yes", "No")))) %>%
-  mutate(percentage = (total/7647)*100)
+  mutate(percentage = (total/sum(total))*100)
 
 
 threatenedcountsplot <- ggplot(threatdata, aes(x = 1, y = total, fill = factor(threatened), alpha = 0.5)) +
