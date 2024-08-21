@@ -48,7 +48,6 @@ droughtdatafull <- left_join(droughtdatasaved, growthform, by = 'scientificName'
 droughtdata <- droughtdatafull %>%
   filter(EOODataAvailable == "AvailableEOO") #subset just EOO data - gives us 10131 species
 
-≈
 pointdroughtdata <- droughtdatafull %>%
   filter(EOODataAvailable == "AvailablePoint") #subset just AOO data - gives us 36262 species
 ```
