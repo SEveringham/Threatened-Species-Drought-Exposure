@@ -43,13 +43,13 @@ droughtdatafull <- read.csv("Data/Data Used in Analyses/fulldroughtwithxylemdata
 growthform <- read.csv("Data/Data Used in Analyses/fullIUCNandgrowthform.csv")
 
 droughtdatafull <- left_join(droughtdatafull, growthform, by = 'scientificName') %>%
-  filter(!Aquatic == "yes")
-#subset just EOO data
+  filter(!Aquatic == "yes") #subset just without aquatic plants - this gives us 65746 non-aquatic species on IUCN
+
 droughtdata <- droughtdatafull %>%
-  filter(EOODataAvailable == "AvailableEOO")
-#then also the supplementary dataset that contains all the threatened species that have range point data
+  filter(EOODataAvailable == "AvailableEOO") #then subset species with EOO data - gives us 10131 species 
+
 pointdroughtdata <- droughtdatafull %>%
-  filter(EOODataAvailable == "AvailablePoint")
+  filter(EOODataAvailable == "AvailablePoint") #then subset species with AOO data - gives us 36262 species
 ```
 
 ## Sourcing Functions
@@ -86,7 +86,7 @@ plot(robustnessofdroughtprojection245dur)
 
 #quick count of species we can't include for duration projections in scenario 245
 sum(droughtdata$duration_245_proportion_non_robust == 1)
-#5213 species we cannot use!
+#5311 species we cannot use!
 
 robustnessofdroughtprojection585dur <- ggplot(data=droughtdata, aes(x =duration_585_proportion_non_robust,fill = "#53619E")) +
   geom_histogram(colour = "grey40", bins = 100) +
@@ -107,7 +107,7 @@ plot(robustnessofdroughtprojection585dur)
 
 #quick count of species we can't include for duration projections in scenario 585
 sum(droughtdata$duration_585_proportion_non_robust == 1)
-#3635 species we cannot use for scenario SSp 5-8.5
+#3696 species we cannot use for scenario SSp 5-8.5
 
 robustnessofdroughtprojection245freq <- ggplot(data=droughtdata, aes(x = frequency_245_proportion_non_robust, fill = "#53619E")) +
   geom_histogram(colour = "grey40", bins = 100) +
@@ -126,7 +126,7 @@ plot(robustnessofdroughtprojection245freq)
 
 #quick count of species we can't include for scenario 245
 sum(droughtdata$frequency_245_proportion_non_robust == 1)
-#3845 species we cannot use!
+#3903 species we cannot use!
 
 robustnessofdroughtprojection585 <- ggplot(data=droughtdata, aes(x =frequency_585_proportion_non_robust,fill = "#53619E")) +
   geom_histogram(colour = "grey40", bins = 100) +
@@ -147,14 +147,14 @@ plot(robustnessofdroughtprojection585)
 
 #quick count of species we can't include for scenario 585
 sum(droughtdata$frequency_585_proportion_non_robust == 1)
-#3248 species we cannot use!
+#3289 species we cannot use!
 
 #quick count of how many species we can't use altogether
 sum(droughtdata$duration_245_proportion_non_robust == 1 &
       droughtdata$duration_585_proportion_non_robust == 1 &
       droughtdata$frequency_245_proportion_non_robust == 1 &
       droughtdata$frequency_585_proportion_non_robust == 1)
-#2451 species have no range in robust drought projection areas for either scenario
+#2484 species have no range in robust drought projection areas for either scenario for either duration or frequency of drought
 
 #remove these species where there is no range at all in robust areas
 droughtdatarobust <- droughtdata %>%
@@ -164,11 +164,11 @@ droughtdatarobust <- droughtdata %>%
       droughtdata$frequency_585_proportion_non_robust == 1))
 ```
 
-Now we are left with 7295 species with extents of occurrence in at least a small proportion of their range in a robust drought projected area for either scenario
+Now we are left with 7647 species with extents of occurrence in at least a small proportion of their range in a robust drought projected area for either scenario
 
 ## Threat status
 
-Having a look at the IUCN threat status of the 6281 species with robust drought projections
+Having a look at the IUCN threat status of the 7647 species with robust drought projections
 
 ```{r}
 # Create a dataframe with the summary counts of threat categories
@@ -176,11 +176,11 @@ threatdata <- droughtdatarobust %>%
   group_by(redlistCategory.x) %>%
   summarise(total = n()) %>%
   filter(!redlistCategory.x == "Lower Risk/near threatened") %>%
-  mutate(total = if_else(total == 622, 624, total)) %>% #adding the two species that are in the strange above filtered category "lower risk/near threatened" to just the usual "near threatened" category
+  mutate(total = if_else(total == 647, 649, total)) %>% #adding the two species that are in the strange above filtered category "lower risk/near threatened" to just the usual "near threatened" category
   mutate(threatened = if_else(redlistCategory.x == "Critically Endangered", "Yes",
                               if_else(redlistCategory.x == "Endangered", "Yes",
                                       if_else(redlistCategory.x == "Vulnerable", "Yes", "No")))) %>%
-  mutate(percentage = (total/7295)*100)
+  mutate(percentage = (total/7647)*100)
 
 
 threatenedcountsplot <- ggplot(threatdata, aes(x = 1, y = total, fill = factor(threatened), alpha = 0.5)) +
@@ -252,7 +252,7 @@ SpeciesScenariosCountDuration245 <- SpeciesScenariosDuration245 %>%
   mutate(Metric = "Duration") %>%
   dplyr::rename(NumberofSpecies = `length(duration_245_proportion_non_robust)`) %>%
   mutate(SSP = "245") %>%
-  mutate(total = 1428)
+  mutate(total = sum(NumberofSpecies))
 
 #SSP 5-8.5
 SpeciesScenariosDuration585 <- droughtdatarobust %>%
@@ -270,7 +270,7 @@ SpeciesScenariosCountDuration585 <- SpeciesScenariosDuration585 %>%
   mutate(Metric = "Duration") %>%
   dplyr::rename(NumberofSpecies = `length(duration_585_proportion_non_robust)`) %>%
   mutate(SSP = "585") %>%
-  mutate(total = 2283)
+  mutate(total = sum(NumberofSpecies))
 
 #bind rows to get both scenarios together for a stacked barplot
 
