@@ -41,19 +41,19 @@ library(ggbeeswarm)
 ## Read in data
 ```{r}
 #read in the data and remove the aquatic species
-#there is a better way to do this aquatic nonsense 
-droughtandxylemdatafull <- read.csv("Data/Data Used in Analyses/fulldroughtwithxylemdata.csv") %>%
-  filter(!systems == "Freshwater (=Inland waters)") %>%
-  filter(!systems == "Marine") %>%
-  filter(!systems == "Freshwater (=Inland waters)|Marine")
+droughtandxylemdata <- read.csv("Data/Data Used in Analyses/fulldroughtwithxylemdata.csv")
+growthform <- read.csv("Data/Data Used in Analyses/fullIUCNandgrowthform.csv")
+
+droughtandxylemdatafull <- left_join(droughtandxylemdata, growthform, by = 'scientificName') %>%
+  filter(!Aquatic == "yes")
 ```
 
 ## Check differences in p50 for threatened vs non-threatened species
 ```{r}
 p50threatenedgraph <- droughtandxylemdatafull %>%
-  filter(!redlistCategory == 'Data Deficient' & !redlistCategory == 'Extinct in the Wild' & !redlistCategory == 'Extinct' & !is.na(redlistCategory)) %>%
-  mutate(redlistCategory= if_else(.$redlistCategory %in% c('Critically Endangered','Endangered', 'Vulnerable'), redlistCategory, "ynot threatened")) %>%
-  ggplot(aes(x = P50..MPa., y = redlistCategory, fill = redlistCategory)) +
+  filter(!redlistCategory.x == 'Data Deficient' & !redlistCategory.x == 'Extinct in the Wild' & !redlistCategory.x == 'Extinct' & !is.na(redlistCategory.x)) %>%
+  mutate(redlistCategory.x = if_else(.$redlistCategory.x %in% c('Critically Endangered','Endangered', 'Vulnerable'), redlistCategory.x, "ynot threatened")) %>%
+  ggplot(aes(x = p50, y = redlistCategory.x, fill = redlistCategory.x)) +
   geom_density_ridges(scale = 0.7, alpha = 0.8, quantile_lines = T, quantile_fun = mean,
     jittered_points = TRUE,
     vline_size = 1, vline_color = "black",
