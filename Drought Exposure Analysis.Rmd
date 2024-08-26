@@ -363,7 +363,7 @@ durationdotplot <- durationdotplotdata %>%
   theme_classic()
 durationdotplot
 
-ggsave(plot= durationdotplot, filename = "Outputs/DurationDotPlot.jpeg",  device = "jpeg", width = 8, height = 9)
+ggsave(plot= durationdotplot, filename = "Outputs/DurationDotPlot.jpeg",  device = "jpeg", width = 10, height = 9)
 ```
 <br>
 Some key stats from above figures:
@@ -603,6 +603,14 @@ summary(duration245model)
 emmeans(duration245model, list(pairwise ~ redlistCategory.x), adjust = "tukey")
 ```
 
+### Pulling some stats to determine average drought duration change for different species (to report in results section)
+
+Really will show the real-world biology of the exposure experienced.
+
+```{r}
+
+```
+
 ## Drought Frequency
 
 ### Barplots, violin plots and dot plots
@@ -742,7 +750,7 @@ frequencydotplot <- frequencydotplotdata %>%
   theme_classic()
 frequencydotplot
 
-ggsave(plot= frequencydotplot, filename = "Outputs/frequencyDotPlot.jpeg",  device = "jpeg", width = 8, height = 9)
+ggsave(plot= frequencydotplot, filename = "Outputs/frequencyDotPlot.jpeg",  device = "jpeg", width = 10, height = 9)
 ```
 <br>
 
