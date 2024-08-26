@@ -598,17 +598,9 @@ duration585model <- lm(duration_585_mean ~ as.factor(redlistCategory.x), data = 
 #check assumptions
 plot(duration585model)
 #get model output
-summary(duration245model)
+summary(duration585model)
 #compare between each threat category with one another
-emmeans(duration245model, list(pairwise ~ redlistCategory.x), adjust = "tukey")
-```
-
-### Pulling some stats to determine average drought duration change for different species (to report in results section)
-
-Really will show the real-world biology of the exposure experienced.
-
-```{r}
-
+emmeans(duration585model, list(pairwise ~ redlistCategory.x), adjust = "tukey")
 ```
 
 ## Drought Frequency
@@ -985,6 +977,21 @@ plot(frequency585model)
 summary(frequency585model)
 #compare between each threat category with one another
 emmeans(frequency585model, list(pairwise ~ redlistCategory.x), adjust = "tukey")
+```
+
+## Pulling some stats to determine average drought duration change for different species (to report in results section)
+
+Really will show the real-world biology of the exposure experienced by species
+
+```{r}
+meansofdroughtchange <- droughtdatarobust %>%
+  filter(!redlistCategory.x == 'Data Deficient' & !redlistCategory.x == 'Extinct in the Wild' & !redlistCategory.x == 'Extinct' & !is.na(redlistCategory.x)) %>%
+  mutate(threatened = if_else(.$redlistCategory.x %in% c('Critically Endangered','Endangered', 'Vulnerable'), "threatened", "not threatened")) %>%
+  group_by(threatened) %>%
+  summarise(averageduration245 = mean(duration_245_mean, na.rm = T),
+            averageduration585 = mean(duration_585_mean, na.rm = T),
+            averagefrequency245 = mean(frequency_245_mean, na.rm = T),
+            averagefrequency585 = mean(frequency_585_mean, na.rm = T))
 ```
 
 ## Appendices
