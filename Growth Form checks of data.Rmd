@@ -30,7 +30,7 @@ growthform <- fread("Data/32845.txt", fill = TRUE)
 
 growthformcomplete <- growthform %>%
   filter(OriglName == "growth form complete") %>%
-  dplyr::rename(scientificName = SpeciesName) 
+  dplyr::rename(scientificName = SpeciesName)
 
 IUCNdatawithgrowthform1 <- left_join(plantsonIUCN, growthformcomplete, by = "scientificName") %>%
   select(scientificName, redlistCategory, systems, OrigValueStr, Reference) %>%
