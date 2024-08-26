@@ -73,3 +73,16 @@ p50threatenedgraph <- droughtandxylemdatafull %>%
 p50threatenedgraph
 ```
 
+## Check overlap between robust drought data and p50 data
+```{r}
+#remove these species where there is no range at all in robust areas
+droughtandxylemdatarobust <- droughtandxylemdata %>%
+  filter(EOODataAvailable == "AvailableEOO") %>%
+  filter(!is.na(p50)) %>%
+  filter(!(duration_245_proportion_non_robust == 1 &
+      duration_585_proportion_non_robust == 1 &
+      frequency_245_proportion_non_robust == 1 &
+      frequency_585_proportion_non_robust == 1))
+
+```
+
