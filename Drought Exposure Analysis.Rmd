@@ -1021,8 +1021,8 @@ robustnessofdroughtprojection245 <- ggplot(data=pointdroughtdata, aes(x =duratio
 plot(robustnessofdroughtprojection245)
 
 #quick count of species we can't include for scenario 245
-sum(droughtdata$duration_245_proportion_non_robust == 1)
-#5213 species we cannot use!
+sum(pointdroughtdata$duration_245_proportion_non_robust == 1)
+#22715 species we cannot use!
 
 robustnessofdroughtprojection585 <- ggplot(data=pointdroughtdata, aes(x =duration_585_proportion_non_robust,fill = "#53619E")) +
   geom_histogram(colour = "grey40", bins = 100) +
@@ -1044,19 +1044,64 @@ plot(robustnessofdroughtprojection585)
 
 #quick count of species we can't include for scenario 585
 sum(pointdroughtdata$duration_585_proportion_non_robust == 1)
-#3635 species we cannot use for scenario SSp 5-8.5
+#15283 species we cannot use for scenario SSp 5-8.5
 
-#quick count of how many species we can't use altoghter
+robustnessofdroughtprojection245freq <- ggplot(data=pointdroughtdata, aes(x = frequency_245_proportion_non_robust, fill = "#53619E")) +
+  geom_histogram(colour = "grey40", bins = 100) +
+  ggplot2::annotate("text",
+    label="c) SSP2-4.5 - frequency", 
+    x=0.34,
+    y=8000,
+  size = 10) +
+  theme_classic(base_size =15) +
+  labs(y = "Count of Species (log10 transformed)", x = "Proportion of a species' extent of occurrence that is a non-robust area \n (i.e. DOESN'T fall into robust drought projections pixel)") +
+  scale_fill_manual(values =  "#7BCADE")+
+  scale_y_continuous(trans = "log10") +
+  guides(fill="none")
+  
+plot(robustnessofdroughtprojection245freq)
+
+#quick count of species we can't include for scenario 245
+sum(pointdroughtdata$frequency_245_proportion_non_robust == 1)
+#16077 species we cannot use!
+
+robustnessofdroughtprojection585 <- ggplot(data=pointdroughtdata, aes(x =frequency_585_proportion_non_robust,fill = "#53619E")) +
+  geom_histogram(colour = "grey40", bins = 100) +
+  ggplot2::annotate("text",
+    label="d) SSP5-8.5 - frequency", 
+    x=0.34,
+    y=8000,
+    size = 10
+  ) +
+  theme_classic(base_size = 15) +
+  labs(y = "", x = "Proportion of a species' extent of occurrence that is a non-robust area \n (i.e. DOESN'T fall into robust drought projections pixel)") +
+  scale_y_continuous(trans = "log10") +
+  scale_fill_manual(values =  "#7BCADE")+
+  guides(fill="none")
+  
+  
+plot(robustnessofdroughtprojection585)
+
+#quick count of species we can't include for scenario 585
+sum(pointdroughtdata$frequency_585_proportion_non_robust == 1)
+#13185 species we cannot use!
+
+#quick count of how many species we can't use altogether
 sum(pointdroughtdata$duration_245_proportion_non_robust == 1 &
-      pointdroughtdata$duration_585_proportion_non_robust == 1)
-#14,468 species have no range in robust drought projection areas for either scenario
+      pointdroughtdata$duration_585_proportion_non_robust == 1 &
+      pointdroughtdata$frequency_245_proportion_non_robust == 1 &
+      pointdroughtdata$frequency_585_proportion_non_robust == 1)
+
+#10715 species have no range in robust drought projection areas for either scenario for either duration or frequency of drought
 
 #remove these species where there is no range at all in robust areas
 pointdroughtdatarobust <- pointdroughtdata %>%
   filter(!(pointdroughtdata$duration_245_proportion_non_robust == 1 &
-      pointdroughtdata$duration_585_proportion_non_robust == 1))
+      pointdroughtdata$duration_585_proportion_non_robust == 1 &
+        pointdroughtdata$frequency_245_proportion_non_robust == 1 &
+      pointdroughtdata$frequency_585_proportion_non_robust == 1))
 ```
-Now we are left with 21707 species with AOOs in at least a small proportion of their range in a robust drought projected area for either scenario
+Now we are left with 25547 species with AOOs in at least a small proportion of their range in a robust drought projected area for either scenario
 
 ## Threat status
 
