@@ -42,7 +42,9 @@ droughtdatapoints <- read.csv("Data/Raw Data/drought_metrics_compile_points_2024
 xylemtraits <- read.csv("Data/Raw Data/Xylem Functional Traits.csv", na.strings=c("","NA")) %>%
   unite(scientificName, c("Cleaned.genus", "Cleaned.species"), sep = " ", remove = FALSE) %>%
   group_by(scientificName) %>%
-  summarise(p50 = mean(as.numeric(P50..MPa.), na.rm=T))
+  summarise(p50 = mean(as.numeric(P50..MPa.), na.rm=T),
+            psiminmidday = mean(as.numeric(X.p.min.midday..MPa.), na.rm = T),
+            psiminpredawn = mean(as.numeric(X.p.min.predawn..MPa.), na.rm = T))
 ```
 
 ## Join data
@@ -143,12 +145,12 @@ realms <- fullDroughtIUCNdata %>%
   mutate(Neotropical = as.numeric(ifelse(grepl("Neotropical", realm, ignore.case = TRUE),'1','0'))) %>%
   mutate(Oceanian = as.numeric(ifelse(grepl("Oceanian", realm, ignore.case = TRUE),'1','0'))) %>%
   mutate(Palearctic = as.numeric(ifelse(grepl("Palearctic", realm, ignore.case = TRUE),'1','0'))) %>%
-  mutate(cosmopolitanness = rowSums(.[47:54])) %>%
+  mutate(cosmopolitanness = rowSums(.[,c("Afrotropical", "Antarctic", "Australasian", "Indomalayan", "Nearctic", "Neotropical", "Oceanian", "Palearctic")])) %>%
   mutate(cosmopolitanness, ifelse(is.na(cosmopolitanness), 0, cosmopolitanness))
 
 realmsplot <- realms %>%
   group_by(EOODataAvailable) %>%
-  summarise(across(46:54, ~ sum(.x > 0))) %>%
+  summarise(across(c("Afrotropical", "Antarctic", "Australasian", "Indomalayan", "Nearctic", "Neotropical", "Oceanian", "Palearctic"), ~ sum(.x > 0))) %>%
   pivot_longer(cols= `Afrotropical`:`Palearctic`, names_to = "realm", values_to = "totalspecies") %>%
   ggplot(aes(x = realm, y=totalspecies, fill = EOODataAvailable)) +
   geom_bar(position= "dodge", stat= "identity") +
@@ -186,15 +188,15 @@ Again - our data cover a nice amount of areas of the globe and levels of "cosmop
 #Marine Species with Droughtdata
  
 sum(fullDroughtIUCNdata$EOODataAvailable == "AvailableEOO" & fullDroughtIUCNdata$systems == "Marine", na.rm=TRUE)
-#143 species
+#5 species
  
 #Freshwater species with drought data
 sum(fullDroughtIUCNdata$EOODataAvailable == "AvailableEOO" & fullDroughtIUCNdata$systems == "Freshwater (=Inland waters)", na.rm=TRUE)
-#764! a lot...
+#385! a lot...
 
 #Terrestrial/Freshwater species with drought data
 sum(fullDroughtIUCNdata$EOODataAvailable == "AvailableEOO" & fullDroughtIUCNdata$systems == "Terrestrial|Freshwater (=Inland waters)", na.rm=TRUE)
-#926! a lot...
+#900! a lot...
 
 #Terrestrial/marine species with drought data
 sum(fullDroughtIUCNdata$EOODataAvailable == "AvailableEOO" & fullDroughtIUCNdata$systems == "Terrestrial|Marine", na.rm=TRUE)
@@ -202,7 +204,7 @@ sum(fullDroughtIUCNdata$EOODataAvailable == "AvailableEOO" & fullDroughtIUCNdata
 
 #Terrestrial/Freshwater/Marine species with drought data
 sum(fullDroughtIUCNdata$EOODataAvailable == "AvailableEOO" & fullDroughtIUCNdata$systems == "Terrestrial|Freshwater (=Inland waters)|Marine", na.rm=TRUE)
-#22
+#21
 ```
 <br>
 
@@ -265,10 +267,8 @@ p50graph
 
 It is evident that very limited numbers of species have p50 data:
 
-- only 923 species (of ~66000) on the IUCN have any p50 data
-- only 191 of these have EOO data as well
-- only 260 of these have AOO data as well
-- 472 have no spatial data but have p50 data
+- only 373 species (of ~66000) on the IUCN have any p50 data
+- only 73 of these have EOO data as well and only 9 are threatened
 
 Having a quick look at the spread of this p50 data
 ```{r}
