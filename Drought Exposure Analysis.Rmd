@@ -764,9 +764,9 @@ Some key stats from above figures:
 
 For SSP 2-4.5
 
-- 96.6% of species (2077 species out of 2151) have some part of their range that falls into at least one area of an increase in drought frequency
-- 67.9% of species (1460 out of 2151) have their entire range falling into areas that increase in drought frequency
-- 4.1% of species (89 out of 2151) have some part of their range that falls into at least one area of a decrease in drought frequency
+- 96.4% of species (2125 species out of 2205) have some part of their range that falls into at least one area of an increase in drought frequency
+- 67.6% of species (1490 out of 2205) have their entire range falling into areas that increase in drought frequency
+- 4.3% of species (95 out of 2205) have some part of their range that falls into at least one area of a decrease in drought frequency
 - Only 8 species (<1%) has their entire range falling into regions with decreases in drought frequency
 
 
@@ -776,13 +776,27 @@ For SSP 2-4.5
 For SSP 5-8.5 (similar stats to above scenario - they just get a tiny bit worse…)
 <br>
 
-- 95.7% of species (2223 species out of 2323) have some part of their range that falls into at least one area of an increase in drought duration
-- 79.3% of species (1843 out of 2323) have their entire range falling into areas that increase in drought duration
-- 5.1% of species (119 out of 2323) have some part of their range that falls into at least one area of a decrease in drought duration
-- Only 23 species (1.0%) have their entire range falling into regions with decreases in drought frequency
+- 95.6% of species (2273 species out of 2380) have some part of their range that falls into at least one area of an increase in drought duration
+- 78.9% of species (1877 out of 2380) have their entire range falling into areas that increase in drought duration
+- 5.2% of species (126 out of 2380) have some part of their range that falls into at least one area of a decrease in drought duration
+- Only 25 species (1.0%) have their entire range falling into regions with decreases in drought frequency
+
+br>
+We also need to determine the AVERAGE proportion of any species range that falls into drought increasing/decreasing regions (where species that have entire ranges falling into certain scenarios are excluded)
+```{r}
+proportiondroughtfrequencyincreasingordecreasingmeans <- BothScenariosData %>%
+  group_by(SSP, positiveornegative) %>%
+  summarise(mean = mean(proportion, na.rm = T))
+```
+
+This data shows us that on average, species will:
+- Under SSP2-4.5 have around 0.25 of their range in drought duration decreasing regions and 0.58 of their range in drought increasing regions
+- Under SSP5-8.5 have around 0.31 of their range in drought duration decreasing regions and 0.46 of their range in drought increasing regions
+
+<br>
 
 
-Now same plots but with JUST threatened species (vulnerable, endangered, critically endangered) and comparing these groups
+Now same violin plots but with JUST threatened species (vulnerable, endangered, critically endangered) and comparing these groups
 ```{r,max.height='200px', fig.show="hold", out.width="50%", message = F, warning = F}
 #scenario SPP 2-4.5
 threatenedspeciesprop245 <- droughtdatarobust %>%
