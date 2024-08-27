@@ -370,9 +370,9 @@ Some key stats from above figures:
 
 For SSP 2-4.5
 
-- 97.2% of species (1389 species out of 1428) have some part of their range that falls into at least one area of an increase in drought duration
-- 67.2% of species (959 out of 1428) have their entire range falling into areas that increase in drought duration
-- 2.9% of species (41 out of 1428) have some part of their range that falls into at least one area of a decrease in drought duration
+- 97.1% of species (1427 species out of 1469) have some part of their range that falls into at least one area of an increase in drought duration
+- 66.4% of species (975 out of 1469) have their entire range falling into areas that increase in drought duration
+- 3.0% of species (44 out of 1469) have some part of their range that falls into at least one area of a decrease in drought duration
 - Only one singular species (<1%) has it’s entire range falling into regions with decreases in drought duration
 
 <br>
@@ -380,9 +380,9 @@ For SSP 2-4.5
 For SSP 5-8.5 (similar stats to above scenario - they just get a tiny bit worse…)
 <br>
 
-- 98.1% of species (2240 species out of 2283) have some part of their range that falls into at least one area of an increase in drought duration
-- 76.2% of species (1740 out of 2283) have their entire range falling into areas that increase in drought duration
-- 2.5% of species (56 out of 2283) have some part of their range that falls into at least one area of a decrease in drought duration
+- 98.0% of species (2287 species out of 2334) have some part of their range that falls into at least one area of an increase in drought duration
+- 76.2% of species (1779 out of 2334) have their entire range falling into areas that increase in drought duration
+- 2.6% of species (60 out of 2334) have some part of their range that falls into at least one area of a decrease in drought duration
 - Only two species (<1%) have their entire range falling into regions with decreases in drought duration
 
 
