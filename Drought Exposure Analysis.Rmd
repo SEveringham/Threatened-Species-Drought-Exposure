@@ -385,8 +385,22 @@ For SSP 5-8.5 (similar stats to above scenario - they just get a tiny bit worseâ
 - 2.6% of species (60 out of 2334) have some part of their range that falls into at least one area of a decrease in drought duration
 - Only two species (<1%) have their entire range falling into regions with decreases in drought duration
 
+<br>
+We also need to determine the AVERAGE proportion of any species range that falls into drought increasing/decreasing regions (where species that have entire ranges falling into certain scenarios are excluded)
+```{r}
+proportiondroughtdurationincreasingordecreasingmeans <- BothScenariosData %>%
+  group_by(SSP, positiveornegative) %>%
+  summarise(mean = mean(proportion, na.rm = T))
+```
 
-Now same plots but with comparing across threatened species (vulnerable, endangered, critically endangered) 
+This data shows us that on average, species will:
+- Under SSP2-4.5 have around 0.13 of their range in drought duration decreasing regions and 0.47 of their range in drought increasing regions
+- Under SSP5-8.5 have around 0.20 of their range in drought duration decreasing regions and 0.50 of their range in drought increasing regions
+
+<br>
+
+
+Now same violing plots but with comparing across threatened species (vulnerable, endangered, critically endangered) 
 
 ```{r,max.height='200px', fig.show="hold", out.width="50%", message = F, warning = F}
 #scenario SPP 2-4.5
