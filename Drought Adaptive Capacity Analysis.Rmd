@@ -48,6 +48,15 @@ droughtandxylemdatafull <- left_join(droughtandxylemdata, growthform, by = 'scie
   filter(!Aquatic == "yes")
 ```
 
+## Calculate safety margins of species based on Ψ50 - Ψmin
+
+```{r}
+droughtandxylemdatafull$safetymarginA <- as.numeric(droughtandxylemdatafull$psiminmidday) - as.numeric(droughtandxylemdatafull$p50)
+droughtandxylemdatafull$safetymarginB <- as.numeric(droughtandxylemdatafull$psiminpredawn) - as.numeric(droughtandxylemdatafull$p50)
+droughtandxylemdatafull$safetymargin <- rowMeans(droughtandxylemdatafull[,c("safetymarginA", "safetymarginB")], na.rm = T)
+```
+
+
 ## Check differences in p50 for threatened vs non-threatened species
 ```{r}
 p50threatenedgraph <- droughtandxylemdatafull %>%
@@ -76,7 +85,7 @@ p50threatenedgraph
 ## Check overlap between robust drought data and p50 data
 ```{r}
 #remove these species where there is no range at all in robust areas
-droughtandxylemdatarobust <- droughtandxylemdata %>%
+droughtandxylemdatarobustp50 <- droughtandxylemdatafull %>%
   filter(EOODataAvailable == "AvailableEOO") %>%
   filter(!is.na(p50)) %>%
   filter(!(duration_245_proportion_non_robust == 1 &
@@ -84,5 +93,13 @@ droughtandxylemdatarobust <- droughtandxylemdata %>%
       frequency_245_proportion_non_robust == 1 &
       frequency_585_proportion_non_robust == 1))
 
+droughtandxylemdatarobustsafetymargin <- droughtandxylemdatafull %>%
+  filter(EOODataAvailable == "AvailableEOO") %>%
+  filter(!is.na(safetymargin)) %>%
+  filter(!(duration_245_proportion_non_robust == 1 &
+      duration_585_proportion_non_robust == 1 &
+      frequency_245_proportion_non_robust == 1 &
+      frequency_585_proportion_non_robust == 1))
 ```
+
 
