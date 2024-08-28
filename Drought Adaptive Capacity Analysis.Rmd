@@ -65,7 +65,8 @@ droughtandxylemdatarobustp50 <- droughtandxylemdatafull %>%
   filter(!(duration_245_proportion_non_robust == 1 &
       duration_585_proportion_non_robust == 1 &
       frequency_245_proportion_non_robust == 1 &
-      frequency_585_proportion_non_robust == 1))
+      frequency_585_proportion_non_robust == 1)) %>%
+  mutate(threatened = if_else(.$redlistCategory.x %in% c('Critically Endangered','Endangered', 'Vulnerable'), "threatened", "ynot threatened"))
 
 droughtandxylemdatarobustsafetymargin <- droughtandxylemdatafull %>%
   filter(EOODataAvailable == "AvailableEOO") %>%
@@ -73,14 +74,27 @@ droughtandxylemdatarobustsafetymargin <- droughtandxylemdatafull %>%
   filter(!(duration_245_proportion_non_robust == 1 &
       duration_585_proportion_non_robust == 1 &
       frequency_245_proportion_non_robust == 1 &
-      frequency_585_proportion_non_robust == 1))
+      frequency_585_proportion_non_robust == 1)) %>%
+  mutate(threatened = if_else(.$redlistCategory.x %in% c('Critically Endangered','Endangered', 'Vulnerable'), "threatened", "ynot threatened"))
 ```
 
 ## Check differences in p50 for threatened vs non-threatened species
+
+### Regression model
+```{r}
+#run linear model
+p50model <- lm(p50 ~ as.factor(threatened), data = droughtandxylemdatarobustp50)
+#check assumptions
+plot(p50model)
+#get model output
+summary(p50model)
+```
+
+### Plots
 ```{r}
 p50threatenedgraph <- droughtandxylemdatarobustp50 %>%
   mutate(redlistCategory.x = if_else(.$redlistCategory.x %in% c('Critically Endangered','Endangered', 'Vulnerable'), "threatened", "ynot threatened")) %>%
-  ggplot(aes(x = p50, y = redlistCategory.x, fill = redlistCategory.x)) +
+  ggplot(aes(x = p50, y = threatened, fill = threatened)) +
   geom_density_ridges(scale = 0.7, alpha = 0.8, quantile_lines = T, quantile_fun = mean,
     jittered_points = TRUE,
     vline_size = 1, vline_color = "black",
@@ -98,13 +112,28 @@ p50threatenedgraph <- droughtandxylemdatarobustp50 %>%
   xlim(-10, 0)
 
 p50threatenedgraph
+
+#save the plot
+ggsave(plot= p50threatenedgraph, filename = "Outputs/p50plot.jpeg",  device = "jpeg", width = 10, height = 9)
 ```
 
 ## Check differences in safety margins for threatened vs non-threatened species
+
+### Regression model
 ```{r}
-saeftymarginthreatenedgraph <- droughtandxylemdatarobustsafetymargin %>%
+#run linear model
+safetymarginmodel <- lm(safetymargin ~ as.factor(threatened), data = droughtandxylemdatarobustsafetymargin)
+#check assumptions
+plot(safetymarginmodel)
+#get model output
+summary(safetymarginmodel)
+```
+
+### Plot
+```{r}
+safetymarginthreatenedgraph <- droughtandxylemdatarobustsafetymargin %>%
   mutate(redlistCategory.x = if_else(.$redlistCategory.x %in% c('Critically Endangered','Endangered', 'Vulnerable'), "threatened", "ynot threatened")) %>%
-  ggplot(aes(x = safetymargin, y = redlistCategory.x, fill = redlistCategory.x)) +
+  ggplot(aes(x = safetymargin, y = threatened, fill = threatened)) +
   geom_density_ridges(scale = 0.7, alpha = 0.8, quantile_lines = T, quantile_fun = mean,
     jittered_points = TRUE,
     vline_size = 1, vline_color = "black",
@@ -121,5 +150,20 @@ saeftymarginthreatenedgraph <- droughtandxylemdatarobustsafetymargin %>%
   geom_vline(xintercept = 0, size =1, color = "black", linetype = "dashed") +
   xlim(-5, 6)
 
-saeftymarginthreatenedgraph
+safetymarginthreatenedgraph
+
+#save the plot
+ggsave(plot= safetymarginthreatenedgraph, filename = "Outputs/safetymarginplot.jpeg",  device = "jpeg", width = 10, height = 9)
 ```
+
+## Get means for results section for p50 and safety margins for threatened versus non-threatened species
+```{r}
+p50mean <- droughtandxylemdatarobustp50 %>%
+  group_by(threatened) %>%
+  summarise(meanp50 = mean(p50, na.rm = T))
+
+safteymarginmean <- droughtandxylemdatarobustsafetymargin %>%
+  group_by(threatened) %>%
+  summarise(meansafetymargin = mean(safetymargin, na.rm = T))
+```
+
