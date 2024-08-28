@@ -56,32 +56,6 @@ droughtandxylemdatafull$safetymarginB <- as.numeric(droughtandxylemdatafull$psim
 droughtandxylemdatafull$safetymargin <- rowMeans(droughtandxylemdatafull[,c("safetymarginA", "safetymarginB")], na.rm = T)
 ```
 
-
-## Check differences in p50 for threatened vs non-threatened species
-```{r}
-p50threatenedgraph <- droughtandxylemdatafull %>%
-  filter(!redlistCategory.x == 'Data Deficient' & !redlistCategory.x == 'Extinct in the Wild' & !redlistCategory.x == 'Extinct' & !is.na(redlistCategory.x)) %>%
-  mutate(redlistCategory.x = if_else(.$redlistCategory.x %in% c('Critically Endangered','Endangered', 'Vulnerable'), redlistCategory.x, "ynot threatened")) %>%
-  ggplot(aes(x = p50, y = redlistCategory.x, fill = redlistCategory.x)) +
-  geom_density_ridges(scale = 0.7, alpha = 0.8, quantile_lines = T, quantile_fun = mean,
-    jittered_points = TRUE,
-    vline_size = 1, vline_color = "black",
-    point_size = 1.2, point_alpha = 0.2, point_color = "black", 
-    position = position_raincloud(adjust_vlines = FALSE, height = 0.18)) + 
-  scale_y_discrete(expand = c(0, 0)) +     # will generally have to set the `expand` option
-  scale_x_continuous(expand = c(0, 0)) +   # for both axes to remove unneeded padding
-  coord_cartesian(clip = "off") + # to avoid clipping of the very top of the top ridgeline
-  scale_fill_manual(values = c("#D52001", "#FC7F3F", "#F9E814", "#60c659")) +
-  guides(fill = "none") +
-  xlab("Mean Drought Duration Change for SSP 2-4.5 Projection (months)") +
-  ylab("") +
-  theme_ridges() +
-  geom_vline(xintercept = 0, size =1, color = "black", linetype = "dashed") +
-  xlim(-15, 0)
-
-p50threatenedgraph
-```
-
 ## Check overlap between robust drought data and p50 data
 ```{r}
 #remove these species where there is no range at all in robust areas
@@ -102,4 +76,50 @@ droughtandxylemdatarobustsafetymargin <- droughtandxylemdatafull %>%
       frequency_585_proportion_non_robust == 1))
 ```
 
+## Check differences in p50 for threatened vs non-threatened species
+```{r}
+p50threatenedgraph <- droughtandxylemdatarobustp50 %>%
+  mutate(redlistCategory.x = if_else(.$redlistCategory.x %in% c('Critically Endangered','Endangered', 'Vulnerable'), "threatened", "ynot threatened")) %>%
+  ggplot(aes(x = p50, y = redlistCategory.x, fill = redlistCategory.x)) +
+  geom_density_ridges(scale = 0.7, alpha = 0.8, quantile_lines = T, quantile_fun = mean,
+    jittered_points = TRUE,
+    vline_size = 1, vline_color = "black",
+    point_size = 1.2, point_alpha = 0.2, point_color = "black", 
+    position = position_raincloud(adjust_vlines = FALSE, height = 0.18)) + 
+  scale_y_discrete(expand = c(0, 0)) +     # will generally have to set the `expand` option
+  scale_x_continuous(expand = c(0, 0)) +   # for both axes to remove unneeded padding
+  coord_cartesian(clip = "off") + # to avoid clipping of the very top of the top ridgeline
+  scale_fill_manual(values = c("#E67F4B", "#7BCADE")) +
+  guides(fill = "none") +
+  xlab("P50") +
+  ylab("") +
+  theme_ridges() +
+  geom_vline(xintercept = 0, size =1, color = "black", linetype = "dashed") +
+  xlim(-10, 0)
 
+p50threatenedgraph
+```
+
+## Check differences in safety margins for threatened vs non-threatened species
+```{r}
+saeftymarginthreatenedgraph <- droughtandxylemdatarobustsafetymargin %>%
+  mutate(redlistCategory.x = if_else(.$redlistCategory.x %in% c('Critically Endangered','Endangered', 'Vulnerable'), "threatened", "ynot threatened")) %>%
+  ggplot(aes(x = safetymargin, y = redlistCategory.x, fill = redlistCategory.x)) +
+  geom_density_ridges(scale = 0.7, alpha = 0.8, quantile_lines = T, quantile_fun = mean,
+    jittered_points = TRUE,
+    vline_size = 1, vline_color = "black",
+    point_size = 1.2, point_alpha = 0.2, point_color = "black", 
+    position = position_raincloud(adjust_vlines = FALSE, height = 0.18)) + 
+  scale_y_discrete(expand = c(0, 0)) +     # will generally have to set the `expand` option
+  scale_x_continuous(expand = c(0, 0)) +   # for both axes to remove unneeded padding
+  coord_cartesian(clip = "off") + # to avoid clipping of the very top of the top ridgeline
+  scale_fill_manual(values = c("#E67F4B", "#7BCADE")) +
+  guides(fill = "none") +
+  xlab("Safety Margin") +
+  ylab("") +
+  theme_ridges() +
+  geom_vline(xintercept = 0, size =1, color = "black", linetype = "dashed") +
+  xlim(-5, 6)
+
+saeftymarginthreatenedgraph
+```
