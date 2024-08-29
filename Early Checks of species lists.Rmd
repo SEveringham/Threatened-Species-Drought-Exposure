@@ -28,6 +28,11 @@ library(ggridges)
 plantsonIUCN <- read.csv("Data/Raw Data/assessments.csv") %>%
   select(-language, -rationale, -threats, -population, -populationTrend, -range, -useTrade, -conservationActions, -yearLastSeen, -scopes)
 
+#data downloaded that have the checked box of drought in their IUCN threat assessment
+droughtthreatenedplants <- read.csv("Data/Raw Data/assessments_drought_only.csv") %>%
+  select(scientificName) %>%
+  mutate(DroughtThreatened = "yes")
+
 #read in the data that we have spatial data for (and therefore drought data) - based on species Extents of occurrence (EOOs)
 droughtdata <- read.csv("Data/Raw Data/drought_metrics_compile_20240510.csv") %>%
   dplyr::rename(scientificName = species_name) %>%
@@ -45,6 +50,7 @@ xylemtraits <- read.csv("Data/Raw Data/Xylem Functional Traits.csv", na.strings=
   summarise(p50 = mean(as.numeric(P50..MPa.), na.rm=T),
             psiminmidday = mean(as.numeric(X.p.min.midday..MPa.), na.rm = T),
             psiminpredawn = mean(as.numeric(X.p.min.predawn..MPa.), na.rm = T))
+
 ```
 
 ## Join data
@@ -53,6 +59,8 @@ Bothdroughtmethods <- bind_rows(droughtdata, droughtdatapoints) %>%
   distinct(scientificName, .keep_all = TRUE)
 fullDroughtIUCNdata <- left_join(plantsonIUCN, Bothdroughtmethods) %>%
   mutate(EOODataAvailable = ifelse(is.na(EOODataAvailable), "NotAvailable", EOODataAvailable)) %>%
+  left_join(., droughtthreatenedplants, by = "scientificName") %>%
+  mutate(DroughtThreatened = ifelse(is.na(DroughtThreatened), "no", DroughtThreatened)) %>%
   left_join(., xylemtraits, by = "scientificName")
 #save this full massive dataframe for later
 write.csv(fullDroughtIUCNdata, "Data/Data Used in Analyses/fulldroughtwithxylemdata.csv")
