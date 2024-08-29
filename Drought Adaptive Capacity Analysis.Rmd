@@ -98,7 +98,7 @@ p50threatenedgraph <- droughtandxylemdatarobustp50 %>%
   geom_density_ridges(scale = 0.7, alpha = 0.8, quantile_lines = T, quantile_fun = mean,
     jittered_points = TRUE,
     vline_size = 1, vline_color = "black",
-    point_size = 1.2, point_alpha = 0.2, point_color = "black", 
+    point_size = 3, point_alpha = 0.2, point_color = "black", 
     position = position_raincloud(adjust_vlines = FALSE, height = 0.18)) + 
   scale_y_discrete(expand = c(0, 0)) +     # will generally have to set the `expand` option
   scale_x_continuous(expand = c(0, 0)) +   # for both axes to remove unneeded padding
@@ -137,7 +137,7 @@ safetymarginthreatenedgraph <- droughtandxylemdatarobustsafetymargin %>%
   geom_density_ridges(scale = 0.7, alpha = 0.8, quantile_lines = T, quantile_fun = mean,
     jittered_points = TRUE,
     vline_size = 1, vline_color = "black",
-    point_size = 1.2, point_alpha = 0.2, point_color = "black", 
+    point_size = 3, point_alpha = 0.2, point_color = "black", 
     position = position_raincloud(adjust_vlines = FALSE, height = 0.18)) + 
   scale_y_discrete(expand = c(0, 0)) +     # will generally have to set the `expand` option
   scale_x_continuous(expand = c(0, 0)) +   # for both axes to remove unneeded padding
