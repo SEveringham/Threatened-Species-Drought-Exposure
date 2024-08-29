@@ -1022,6 +1022,32 @@ meansofdroughtchange <- droughtdatarobust %>%
             averagefrequency585 = mean(frequency_585_mean, na.rm = T))
 ```
 
+## Determining if the species that have drought listed on their Red List assessment are actually more exposed to future drought
+
+```{r}
+durationanddroughtthreat <- droughtdatarobust %>%
+  filter(redlistCategory.x == 'Critically Endangered' & !redlistCategory.x == 'Endangered' & !redlistCategory.x == 'Vulnerable' & !is.na(redlistCategory.x)) %>%
+  ggplot(aes(x = frequency_245_mean, y = DroughtThreatened, fill = DroughtThreatened)) +
+  geom_density_ridges(scale = 0.7, alpha = 0.8, quantile_lines = T, quantile_fun = mean,
+    jittered_points = TRUE,
+    vline_size = 1, vline_color = "black",
+    point_size = 1.2, point_alpha = 0.2, point_color = "black", 
+    position = position_raincloud(adjust_vlines = FALSE, height = 0.18)) + 
+  scale_y_discrete(expand = c(0, 0)) +     # will generally have to set the `expand` option
+  scale_x_continuous(expand = c(0, 0)) +   # for both axes to remove unneeded padding
+  coord_cartesian(clip = "off") + # to avoid clipping of the very top of the top ridgeline
+  scale_fill_manual(values = c("#D52001", "#FC7F3F")) +
+  guides(fill = "none") +
+  xlab("Mean Drought Frequency Change for SSP 2-4.5 Projection (Events per 10y)") +
+  ylab("") +
+  theme_ridges() +
+  geom_vline(xintercept = 0, size =1, color = "black", linetype = "dashed") +
+  xlim(-0.7, 0.7)
+
+durationanddroughtthreat
+```
+
+
 ## Appendices
 
 ## Repeating analyses with point based data (different to EOO data)
