@@ -1024,8 +1024,148 @@ meansofdroughtchange <- droughtdatarobust %>%
 
 ## Determining if the species that have drought listed on their Red List assessment are actually more exposed to future drought
 
+### First calculate the proportions of species that are 'highly exposed to drought' that don't have drought on their Red List assessment
+
+'highly exposed to drought' are those species' whose entire ranges are robust and fall into areas of drought increase
+
+#### For drought duration
 ```{r}
-durationanddroughtthreat <- droughtdatarobust %>%
+durationdroughtlisted245 <- droughtdatarobust %>%
+  filter(duration_245_proportion_non_robust == 0) %>%
+  mutate(highlyexposed = ifelse(duration_245_proportion_positive_value == 1, "yes", "no")) %>%
+  filter(highlyexposed == "yes") %>%
+  group_by(DroughtThreatened) %>%
+  summarise(numberofspeciesthreated = length(DroughtThreatened))
+
+durationdroughtlisted585 <- droughtdatarobust %>%
+  filter(duration_585_proportion_non_robust == 0) %>%
+  mutate(highlyexposed = ifelse(duration_585_proportion_positive_value == 1, "yes", "no")) %>%
+  filter(highlyexposed == "yes") %>%
+  group_by(DroughtThreatened) %>%
+  summarise(numberofspeciesthreated = length(DroughtThreatened))  
+```
+
+
+#### For drought frequency
+
+```{r}
+frequencydroughtlisted245 <- droughtdatarobust %>%
+  filter(frequency_245_proportion_non_robust == 0) %>%
+  mutate(highlyexposed = ifelse(frequency_245_proportion_positive_value == 1, "yes", "no")) %>%
+  filter(highlyexposed == "yes") %>%
+  group_by(DroughtThreatened) %>%
+  summarise(numberofspeciesthreated = length(DroughtThreatened))
+
+frequencydroughtlisted585 <- droughtdatarobust %>%
+  filter(frequency_585_proportion_non_robust == 0) %>%
+  mutate(highlyexposed = ifelse(duration_585_proportion_positive_value == 1, "yes", "no")) %>%
+  filter(highlyexposed == "yes") %>%
+  group_by(DroughtThreatened) %>%
+  summarise(numberofspeciesthreated = length(DroughtThreatened))  
+```
+
+#### Run linear model for Drought duration
+
+```{r}
+#for SSP2-4.5
+#subset data
+duration245threatmodeldata <- droughtdatarobust %>%
+  filter(redlistCategory.x == 'Critically Endangered' & !redlistCategory.x == 'Endangered' & !redlistCategory.x == 'Vulnerable' & !is.na(redlistCategory.x))
+#run linear model
+duration245threatmodel <-  lm(duration_245_mean ~ as.factor(DroughtThreatened), data = duration245threatmodeldata)
+#check assumptions
+plot(duration245threatmodel)
+#get model output
+summary(duration245threatmodel)
+
+#for SSP5-8.5
+duration585threatmodeldata <- droughtdatarobust %>%
+  filter(redlistCategory.x == 'Critically Endangered' & !redlistCategory.x == 'Endangered' & !redlistCategory.x == 'Vulnerable' & !is.na(redlistCategory.x))
+#run linear model
+duration585threatmodel <-  lm(duration_585_mean ~ as.factor(DroughtThreatened), data = duration585threatmodeldata)
+#check assumptions
+plot(duration585threatmodel)
+#get model output
+summary(duration585threatmodel)
+```
+
+
+#### Plot Drought duration
+```{r}
+durationanddroughtthreat245 <- droughtdatarobust %>%
+  filter(redlistCategory.x == 'Critically Endangered' & !redlistCategory.x == 'Endangered' & !redlistCategory.x == 'Vulnerable' & !is.na(redlistCategory.x)) %>%
+  ggplot(aes(x = duration_245_mean, y = DroughtThreatened, fill = DroughtThreatened)) +
+  geom_density_ridges(scale = 0.7, alpha = 0.8, quantile_lines = T, quantile_fun = mean,
+    jittered_points = TRUE,
+    vline_size = 1, vline_color = "black",
+    point_size = 1.2, point_alpha = 0.2, point_color = "black", 
+    position = position_raincloud(adjust_vlines = FALSE, height = 0.18)) + 
+  scale_y_discrete(expand = c(0, 0)) +     # will generally have to set the `expand` option
+  scale_x_continuous(expand = c(0, 0)) +   # for both axes to remove unneeded padding
+  coord_cartesian(clip = "off") + # to avoid clipping of the very top of the top ridgeline
+  scale_fill_manual(values = c("#D52001", "#FC7F3F")) +
+  guides(fill = "none") +
+  xlab("Mean Drought Duration Change for SSP 2-4.5 Projection (Events per 10y)") +
+  ylab("") +
+  theme_ridges() +
+  geom_vline(xintercept = 0, size =1, color = "black", linetype = "dashed") +
+  xlim(-1,2.5)
+
+durationanddroughtthreat245
+
+durationanddroughtthreat585 <- droughtdatarobust %>%
+  filter(redlistCategory.x == 'Critically Endangered' & !redlistCategory.x == 'Endangered' & !redlistCategory.x == 'Vulnerable' & !is.na(redlistCategory.x)) %>%
+  ggplot(aes(x = duration_585_mean, y = DroughtThreatened, fill = DroughtThreatened)) +
+  geom_density_ridges(scale = 0.7, alpha = 0.8, quantile_lines = T, quantile_fun = mean,
+    jittered_points = TRUE,
+    vline_size = 1, vline_color = "black",
+    point_size = 1.2, point_alpha = 0.2, point_color = "black", 
+    position = position_raincloud(adjust_vlines = FALSE, height = 0.18)) + 
+  scale_y_discrete(expand = c(0, 0)) +     # will generally have to set the `expand` option
+  scale_x_continuous(expand = c(0, 0)) +   # for both axes to remove unneeded padding
+  coord_cartesian(clip = "off") + # to avoid clipping of the very top of the top ridgeline
+  scale_fill_manual(values = c("#D52001", "#FC7F3F")) +
+  guides(fill = "none") +
+  xlab("Mean Drought Duration Change for SSP 5-8.5 Projection (Events per 10y)") +
+  ylab("") +
+  theme_ridges() +
+  geom_vline(xintercept = 0, size =1, color = "black", linetype = "dashed") +
+  xlim(-1, 2.5)
+
+durationanddroughtthreat585
+```
+
+
+#### Run linear model for Drought frequency
+
+```{r}
+#for SSP2-4.5
+#subset data
+frequency245threatmodeldata <- droughtdatarobust %>%
+  filter(redlistCategory.x == 'Critically Endangered' & !redlistCategory.x == 'Endangered' & !redlistCategory.x == 'Vulnerable' & !is.na(redlistCategory.x))
+#run linear model
+frequency245threatmodel <-  lm(frequency_245_mean ~ as.factor(DroughtThreatened), data = frequency245threatmodeldata)
+#check assumptions
+plot(frequency245threatmodel)
+#get model output
+summary(frequency245threatmodel)
+
+#for SSP5-8.5
+frequency585threatmodeldata <- droughtdatarobust %>%
+  filter(redlistCategory.x == 'Critically Endangered' & !redlistCategory.x == 'Endangered' & !redlistCategory.x == 'Vulnerable' & !is.na(redlistCategory.x))
+#run linear model
+frequency585threatmodel <-  lm(frequency_585_mean ~ as.factor(DroughtThreatened), data = frequency585threatmodeldata)
+#check assumptions
+plot(frequency585threatmodel)
+#get model output
+summary(frequency585threatmodel)
+```
+
+
+#### Plot drought frequency
+
+```{r}
+frequencyanddroughtthreat245 <- droughtdatarobust %>%
   filter(redlistCategory.x == 'Critically Endangered' & !redlistCategory.x == 'Endangered' & !redlistCategory.x == 'Vulnerable' & !is.na(redlistCategory.x)) %>%
   ggplot(aes(x = frequency_245_mean, y = DroughtThreatened, fill = DroughtThreatened)) +
   geom_density_ridges(scale = 0.7, alpha = 0.8, quantile_lines = T, quantile_fun = mean,
@@ -1038,13 +1178,34 @@ durationanddroughtthreat <- droughtdatarobust %>%
   coord_cartesian(clip = "off") + # to avoid clipping of the very top of the top ridgeline
   scale_fill_manual(values = c("#D52001", "#FC7F3F")) +
   guides(fill = "none") +
-  xlab("Mean Drought Frequency Change for SSP 2-4.5 Projection (Events per 10y)") +
+  xlab("Mean Drought frequency Change for SSP 2-4.5 Projection (Events per 10y)") +
   ylab("") +
   theme_ridges() +
   geom_vline(xintercept = 0, size =1, color = "black", linetype = "dashed") +
-  xlim(-0.7, 0.7)
+  xlim(-0.7, 0.8)
 
-durationanddroughtthreat
+frequencyanddroughtthreat245
+
+frequencyanddroughtthreat585 <- droughtdatarobust %>%
+  filter(redlistCategory.x == 'Critically Endangered' & !redlistCategory.x == 'Endangered' & !redlistCategory.x == 'Vulnerable' & !is.na(redlistCategory.x)) %>%
+  ggplot(aes(x = frequency_585_mean, y = DroughtThreatened, fill = DroughtThreatened)) +
+  geom_density_ridges(scale = 0.7, alpha = 0.8, quantile_lines = T, quantile_fun = mean,
+    jittered_points = TRUE,
+    vline_size = 1, vline_color = "black",
+    point_size = 1.2, point_alpha = 0.2, point_color = "black", 
+    position = position_raincloud(adjust_vlines = FALSE, height = 0.18)) + 
+  scale_y_discrete(expand = c(0, 0)) +     # will generally have to set the `expand` option
+  scale_x_continuous(expand = c(0, 0)) +   # for both axes to remove unneeded padding
+  coord_cartesian(clip = "off") + # to avoid clipping of the very top of the top ridgeline
+  scale_fill_manual(values = c("#D52001", "#FC7F3F")) +
+  guides(fill = "none") +
+  xlab("Mean Drought frequency Change for SSP 5-8.5 Projection (Events per 10y)") +
+  ylab("") +
+  theme_ridges() +
+  geom_vline(xintercept = 0, size =1, color = "black", linetype = "dashed") +
+  xlim(-0.7, 0.8)
+
+frequencyanddroughtthreat585
 ```
 
 
