@@ -1504,7 +1504,7 @@ ggsave(plot= durationdotplot, filename = "Outputs/DurationDotPlotpoints.jpeg",  
 Some key stats from above figures:
 
 
-For SSP 2-4.5 xx
+For SSP 2-4.5 
 
 - 98.2% of species (2545 species out of 2592) have some part of their range that falls into at least one area of an increase in drought duration
 - 73.5% of species (1905 out of 2592) have their entire range falling into areas that increase in drought duration
