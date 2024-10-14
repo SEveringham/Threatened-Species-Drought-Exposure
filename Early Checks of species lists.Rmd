@@ -45,11 +45,11 @@ droughtdatapoints <- read.csv("Data/Raw Data/drought_metrics_compile_points_2024
 
 #and finally reading in the data which we have xylem functional traits for (https://xylemfunctionaltraits.org/)
 xylemtraits <- read.csv("Data/Raw Data/Xylem Functional Traits.csv", na.strings=c("","NA")) %>%
-  unite(scientificName, c("Cleaned.genus", "Cleaned.species"), sep = " ", remove = FALSE) %>%
+  unite(scientificName, c("Genus", "Species"), sep = " ", remove = FALSE) %>%
   group_by(scientificName) %>%
-  summarise(p50 = mean(as.numeric(P50..MPa.), na.rm=T),
-            psiminmidday = mean(as.numeric(X.p.min.midday..MPa.), na.rm = T),
-            psiminpredawn = mean(as.numeric(X.p.min.predawn..MPa.), na.rm = T))
+  summarise(p50 = mean(as.numeric(P50), na.rm=T),
+            psiminmidday = mean(as.numeric('psi-min predawn (MPa)'), na.rm = T),
+            psiminpredawn = mean(as.numeric('psi- min midday (MPa)'), na.rm = T))
 
 ```
 
@@ -275,8 +275,8 @@ p50graph
 
 It is evident that very limited numbers of species have p50 data:
 
-- only 373 species (of ~66000) on the IUCN have any p50 data
-- only 73 of these have EOO data as well and only 9 are threatened
+- only 870 species (of ~66000) on the IUCN have any p50 data
+- only 136 of these have EOO data as well and only 9 are threatened
 
 Having a quick look at the spread of this p50 data
 ```{r}
