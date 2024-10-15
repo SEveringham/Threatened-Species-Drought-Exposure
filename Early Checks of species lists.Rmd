@@ -48,8 +48,8 @@ xylemtraits <- read.csv("Data/Raw Data/Xylem Functional Traits.csv", na.strings=
   unite(scientificName, c("Genus", "Species"), sep = " ", remove = FALSE) %>%
   group_by(scientificName) %>%
   summarise(p50 = mean(as.numeric(P50), na.rm=T),
-            psiminmidday = mean(as.numeric('psi-min predawn (MPa)'), na.rm = T),
-            psiminpredawn = mean(as.numeric('psi- min midday (MPa)'), na.rm = T))
+            psiminmidday = mean(as.numeric(psi.min.predawn..MPa.), na.rm = T),
+            psiminpredawn = mean(as.numeric(psi..min.midday..MPa.), na.rm = T))
 
 ```
 
@@ -276,7 +276,7 @@ p50graph
 It is evident that very limited numbers of species have p50 data:
 
 - only 870 species (of ~66000) on the IUCN have any p50 data
-- only 136 of these have EOO data as well and only 9 are threatened
+- only 136 of these have EOO data as well and only 12 are threatened
 
 Having a quick look at the spread of this p50 data
 ```{r}
