@@ -45,7 +45,8 @@ droughtandxylemdata <- read.csv("Data/Data Used in Analyses/fulldroughtwithxylem
 growthform <- read.csv("Data/Data Used in Analyses/fullIUCNandgrowthform.csv")
 
 droughtandxylemdatafull <- left_join(droughtandxylemdata, growthform, by = 'scientificName') %>%
-  filter(!Aquatic == "yes")
+  filter(!Aquatic == "yes") %>%
+  mutate(threatened = if_else(.$redlistCategory.x %in% c('Critically Endangered','Endangered', 'Vulnerable'), "threatened", "ynot threatened"))
 ```
 
 ## Calculate safety margins of species based on Ψ50 - Ψmin
@@ -65,8 +66,8 @@ droughtandxylemdatarobustp50 <- droughtandxylemdatafull %>%
   filter(!(duration_245_proportion_non_robust == 1 &
       duration_585_proportion_non_robust == 1 &
       frequency_245_proportion_non_robust == 1 &
-      frequency_585_proportion_non_robust == 1)) %>%
-  mutate(threatened = if_else(.$redlistCategory.x %in% c('Critically Endangered','Endangered', 'Vulnerable'), "threatened", "ynot threatened"))
+      frequency_585_proportion_non_robust == 1))
+  
 
 droughtandxylemdatarobustsafetymargin <- droughtandxylemdatafull %>%
   filter(EOODataAvailable == "AvailableEOO") %>%
@@ -74,8 +75,7 @@ droughtandxylemdatarobustsafetymargin <- droughtandxylemdatafull %>%
   filter(!(duration_245_proportion_non_robust == 1 &
       duration_585_proportion_non_robust == 1 &
       frequency_245_proportion_non_robust == 1 &
-      frequency_585_proportion_non_robust == 1)) %>%
-  mutate(threatened = if_else(.$redlistCategory.x %in% c('Critically Endangered','Endangered', 'Vulnerable'), "threatened", "ynot threatened"))
+      frequency_585_proportion_non_robust == 1))
 ```
 
 ## Check differences in p50 for threatened vs non-threatened species
@@ -83,7 +83,7 @@ droughtandxylemdatarobustsafetymargin <- droughtandxylemdatafull %>%
 ### Regression model
 ```{r}
 #run linear model
-p50model <- lm(p50 ~ as.factor(threatened), data = droughtandxylemdatarobustp50)
+p50model <- lm(p50 ~ as.factor(threatened), data = droughtandxylemdatafull)
 #check assumptions
 plot(p50model)
 #get model output
@@ -92,7 +92,7 @@ summary(p50model)
 
 ### Plots
 ```{r}
-p50threatenedgraph <- droughtandxylemdatarobustp50 %>%
+p50threatenedgraph <- droughtandxylemdatafull %>%
   mutate(redlistCategory.x = if_else(.$redlistCategory.x %in% c('Critically Endangered','Endangered', 'Vulnerable'), "threatened", "ynot threatened")) %>%
   ggplot(aes(x = p50, y = threatened, fill = threatened)) +
   geom_density_ridges(scale = 0.7, alpha = 0.8, quantile_lines = T, quantile_fun = mean,
@@ -109,7 +109,7 @@ p50threatenedgraph <- droughtandxylemdatarobustp50 %>%
   ylab("") +
   theme_ridges() +
   geom_vline(xintercept = 0, size =1, color = "black", linetype = "dashed") +
-  xlim(-10, 0)
+  xlim(-17, 0)
 
 p50threatenedgraph
 
@@ -131,7 +131,7 @@ summary(safetymarginmodel)
 
 ### Plot
 ```{r}
-safetymarginthreatenedgraph <- droughtandxylemdatarobustsafetymargin %>%
+safetymarginthreatenedgraph <- droughtandxylemdatafull %>%
   mutate(redlistCategory.x = if_else(.$redlistCategory.x %in% c('Critically Endangered','Endangered', 'Vulnerable'), "threatened", "ynot threatened")) %>%
   ggplot(aes(x = safetymargin, y = threatened, fill = threatened)) +
   geom_density_ridges(scale = 0.7, alpha = 0.8, quantile_lines = T, quantile_fun = mean,
@@ -148,7 +148,7 @@ safetymarginthreatenedgraph <- droughtandxylemdatarobustsafetymargin %>%
   ylab("") +
   theme_ridges() +
   geom_vline(xintercept = 0, size =1, color = "black", linetype = "dashed") +
-  xlim(-5, 6)
+  xlim(-9, 6)
 
 safetymarginthreatenedgraph
 
