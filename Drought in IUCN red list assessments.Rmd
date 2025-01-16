@@ -1,0 +1,69 @@
+---
+title: "Drought in IUCN Red List Assessments"
+output:
+  html_document:
+    theme: flatly
+    toc: yes
+    toc_float: yes
+  pdf_document:
+    toc: yes
+  word_document:
+    toc: yes
+date: "2024-05-16"
+---
+
+```{r, include=FALSE}
+options(width = 60)
+local({
+  hook_output <- knitr::knit_hooks$get('output')
+  knitr::knit_hooks$set(output = function(x, options) {
+    if (!is.null(options$max.height)) options$attr.output <- c(
+      options$attr.output,
+      sprintf('style="max-height: %s;"', options$max.height)
+    )
+    hook_output(x, options)
+  })
+})
+```
+
+## Libraries required
+```{r, message = F, warning = F}
+library(tidyverse)
+```
+
+## Read in data
+```{r}
+droughtinRedListassessments <- read.csv("Data/Raw Data/Red List assessments with drought July 24.csv")
+```
+
+## Sourcing Functions
+```{r}
+source("Functions/Functions.R")
+```
+
+The data that we have here are all of the data downloaded from the IUCN Online Openly Accessible data portal that have Droughts (threat category 11.2) listed as a threat in their assessment. Interestingly, some don't actually list this in their key 'threat' paragraph in the IUCN (but at this point - July 2024 - I actually don't know if there's hidden information behind the assessments that you can download)
+
+1425 species have drought listed. I can download assessment data for 1184 species
+
+Now just want to check out how many actually list 'drought' specifically in their assessment
+
+```{r}
+#Drought specifically
+assessmentswithdroughtlisted <- droughtinRedListassessments %>%
+  filter(str_detect(threats, regex("drought", ignore_case = TRUE)))
+# 657 species listed with 'drought'
+
+#precipitation
+assessmentswithprecipitationlisted <- droughtinRedListassessments %>%
+  filter(str_detect(threats, regex("precipitation", ignore_case = TRUE)))
+# 27 species listed with 'precipitation'
+
+#rain
+assessmentswithrainlisted <- droughtinRedListassessments %>%
+  filter(str_detect(threats, regex("rain", ignore_case = TRUE)))
+# 122 species listed with 'rain'
+```
+
+
+
+

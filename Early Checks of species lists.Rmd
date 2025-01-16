@@ -1,0 +1,296 @@
+---
+title: "Early Checks of Species lists"
+output:
+  html_document:
+    theme: flatly
+    toc: yes
+    toc_float: yes
+  pdf_document:
+    toc: yes
+  word_document:
+    toc: yes
+date: "2024-04-04"
+---
+
+## Libraries required
+
+```{r, message = F}
+library(tidyverse)
+library(data.table)
+library(reshape)
+library(ggridges)
+```
+
+## Read in Data
+```{r}
+#data downloaded from the IUCN red list (https://www.iucnredlist.org/search) for all organisms in the "Plantae" Kingdom (~66,000 records) - plants
+plantsonIUCN <- read.csv("Data/Raw Data/assessments.csv") %>%
+  select(-language, -rationale, -threats, -population, -populationTrend, -range, -useTrade, -conservationActions, -yearLastSeen, -scopes)
+
+#data downloaded that have the checked box of drought in their IUCN threat assessment
+droughtthreatenedplants <- read.csv("Data/Raw Data/assessments_drought_only.csv") %>%
+  select(scientificName) %>%
+  mutate(DroughtThreatened = "yes")
+
+#read in the data that we have spatial data for (and therefore drought data) - based on species Extents of occurrence (EOOs)
+droughtdata <- read.csv("Data/Raw Data/drought_metrics_compile_20240510.csv") %>%
+  dplyr::rename(scientificName = species_name) %>%
+  mutate(EOODataAvailable = "AvailableEOO")
+
+#also reading in the data that we have spatial data that is less accurate - point data
+droughtdatapoints <- read.csv("Data/Raw Data/drought_metrics_compile_points_20240607.csv") %>%
+  dplyr::rename(scientificName = species_name) %>%
+  mutate(EOODataAvailable = "AvailablePoint")
+
+#and finally reading in the data which we have xylem functional traits for (https://xylemfunctionaltraits.org/)
+xylemtraits <- read.csv("Data/Raw Data/Xylem Functional Traits.csv", na.strings=c("","NA")) %>%
+  dplyr::rename(scientificName = binomial_gnr) %>%
+  group_by(scientificName) %>%
+  summarise(p50 = mean(P50, na.rm=T),
+            psiminmidday = mean(psi.min.predawn..MPa., na.rm = T),
+            psiminpredawn = mean(psi..min.midday..MPa., na.rm = T))
+
+```
+
+## Join data
+```{r, message = F}
+Bothdroughtmethods <- bind_rows(droughtdata, droughtdatapoints) %>%
+  distinct(scientificName, .keep_all = TRUE)
+fullDroughtIUCNdata <- left_join(plantsonIUCN, Bothdroughtmethods) %>%
+  mutate(EOODataAvailable = ifelse(is.na(EOODataAvailable), "NotAvailable", EOODataAvailable)) %>%
+  left_join(., droughtthreatenedplants, by = "scientificName") %>%
+  mutate(DroughtThreatened = ifelse(is.na(DroughtThreatened), "no", DroughtThreatened)) %>%
+  left_join(., xylemtraits, by = "scientificName")
+#save this full massive dataframe for later
+write.csv(fullDroughtIUCNdata, "Data/Data Used in Analyses/fulldroughtwithxylemdata.csv")
+```
+
+## Some interesting checks of the IUCN data 
+
+<br>
+<br>
+
+### Quick look at how much our data represents
+```{r}
+howmuchdatawegot <- ggplot(data=fullDroughtIUCNdata, aes(EOODataAvailable, fill = EOODataAvailable)) +
+  geom_bar() +
+  scale_fill_manual(name = "EOODataAvailable", values = c("#7D5D3A", "#53619E", "grey")) +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(y = "Count of Species", x = "Drought Data Availability") +
+  guides(fill="none")
+plot(howmuchdatawegot)
+```
+<br>
+<br>
+<b>10,679 species with extents of occurrence have drought data out of 66,535 (16.1%)</b>
+<b> XX species with point range data have have drought data out of 66,535 (XX%)</b>
+
+
+### Checking out coverage of threat status
+
+Quick bargraph
+```{r}
+redlistcategories <- fullDroughtIUCNdata %>%
+  mutate(redlistCategory = factor(redlistCategory, c("Data Deficient", "Least Concern", "Lower Risk/least concern", "Lower Risk/conservation dependent", "Lower Risk/near threatened", "Near Threatened", "Vulnerable", "Endangered", "Critically Endangered", "Extinct in the Wild", "Extinct"))) %>%
+  ggplot(aes(redlistCategory, fill = EOODataAvailable)) +
+  geom_bar(position= "dodge") +
+  scale_fill_manual(name = "EOODataAvailable", values = c("#7D5D3A", "#53619E", "grey")) +
+  scale_y_log10() +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(y = "Count of Species (log10 transformed)", x = "Red List Category") +
+  guides(fill=guide_legend("Drought Data Availability"))
+
+plot(redlistcategories)
+```
+<br>
+
+This shows our data (which is a subsample) covers all threat statuses (stati?) well!
+
+Quick calculations of overall numbers
+```{r}
+#datadefinicent with drought
+sum(fullDroughtIUCNdata$redlistCategory == "Data Deficient" & fullDroughtIUCNdata$EOODataAvailable == "AvailableEOO")
+#data deficient overall
+sum(fullDroughtIUCNdata$redlistCategory == "Data Deficient")
+
+
+#threatened (not including extinct or not threatened) with drought data
+sum(fullDroughtIUCNdata$redlistCategory == "Critically Endangered" & fullDroughtIUCNdata$EOODataAvailable == "AvailableEOO") + 
+sum(fullDroughtIUCNdata$redlistCategory == "Endangered" & fullDroughtIUCNdata$EOODataAvailable == "AvailableEOO") + 
+sum(fullDroughtIUCNdata$redlistCategory == "Vulnerable" & fullDroughtIUCNdata$EOODataAvailable == "AvailableEOO")
+
+
+#threatened (not including extinct or not threatened) overall
+sum(fullDroughtIUCNdata$redlistCategory == "Critically Endangered") + 
+sum(fullDroughtIUCNdata$redlistCategory == "Endangered") + 
+sum(fullDroughtIUCNdata$redlistCategory == "Vulnerable")
+```
+
+Data Deficient in redlist with drought data = 806 out of 10679 (7.5%) 
+Data deficient in general = 5371 out of 66,535 (8.1%)
+we won't really be looking at these species
+
+Threatened in redlist with drought data = 4251 out of 10679 (39.9%) 
+Threatened in redlist in general = 26.276 out of 66,535 (39.5%)
+
+Note that threatened includes vulnerable, endangered and critically endangered - this is really where our focus lies in our further analyses
+
+
+
+### Having a look at realm (sort of a location or even a 'cosmopolitan-ness' proxy)
+
+Quick bargraphs
+```{r, figures-side, fig.show="hold", out.width="50%"}
+realms <- fullDroughtIUCNdata %>%
+  mutate(Afrotropical = as.numeric(ifelse(grepl("Afrotropical", realm, ignore.case = TRUE),'1','0'))) %>%
+  mutate(Antarctic = as.numeric(ifelse(grepl("Antarctic", realm, ignore.case = TRUE),'1','0'))) %>%
+  mutate(Australasian = as.numeric(ifelse(grepl("Australasian", realm, ignore.case = TRUE),'1','0'))) %>%
+  mutate(Indomalayan = as.numeric(ifelse(grepl("Indomalayan", realm, ignore.case = TRUE),'1','0'))) %>%
+  mutate(Nearctic = as.numeric(ifelse(grepl("Nearctic", realm, ignore.case = TRUE),'1','0'))) %>%
+  mutate(Neotropical = as.numeric(ifelse(grepl("Neotropical", realm, ignore.case = TRUE),'1','0'))) %>%
+  mutate(Oceanian = as.numeric(ifelse(grepl("Oceanian", realm, ignore.case = TRUE),'1','0'))) %>%
+  mutate(Palearctic = as.numeric(ifelse(grepl("Palearctic", realm, ignore.case = TRUE),'1','0'))) %>%
+  mutate(cosmopolitanness = rowSums(.[,c("Afrotropical", "Antarctic", "Australasian", "Indomalayan", "Nearctic", "Neotropical", "Oceanian", "Palearctic")])) %>%
+  mutate(cosmopolitanness, ifelse(is.na(cosmopolitanness), 0, cosmopolitanness))
+
+realmsplot <- realms %>%
+  group_by(EOODataAvailable) %>%
+  summarise(across(c("Afrotropical", "Antarctic", "Australasian", "Indomalayan", "Nearctic", "Neotropical", "Oceanian", "Palearctic"), ~ sum(.x > 0))) %>%
+  pivot_longer(cols= `Afrotropical`:`Palearctic`, names_to = "realm", values_to = "totalspecies") %>%
+  ggplot(aes(x = realm, y=totalspecies, fill = EOODataAvailable)) +
+  geom_bar(position= "dodge", stat= "identity") +
+  scale_fill_manual(name = "EOODataAvailable", values = c("#7D5D3A", "#53619E", "grey")) +
+  scale_y_log10() +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(y = "Total Count of Species that possibly fall into realm", x = "IUCN Biogeographic Realm") +
+  guides(fill=guide_legend("Drought Data Availability"))
+plot(realmsplot)
+
+cosmopolitannessplot <- ggplot(data =realms, aes(as.factor(cosmopolitanness), fill = EOODataAvailable)) +
+  geom_bar(position= "dodge") +
+  scale_fill_manual(name = "EOODataAvailable", values = c("#7D5D3A", "#53619E", "grey")) +
+  scale_y_log10() +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(y = "Species Count (log10 transformed)", x = "Total Number of IUCN Biogeographic Realms a species occcurs in") +
+  guides(fill=guide_legend("Drought Data Availability"))
+plot(cosmopolitannessplot)
+
+```
+
+<br>
+
+Again - our data cover a nice amount of areas of the globe and levels of "cosmopolitanness"
+
+
+<br>
+
+### Aquatic plants (and species' "system") 
+ 
+```{r, message = F, output = F}
+ 
+#Marine Species with Droughtdata
+ 
+sum(fullDroughtIUCNdata$EOODataAvailable == "AvailableEOO" & fullDroughtIUCNdata$systems == "Marine", na.rm=TRUE)
+#5 species
+ 
+#Freshwater species with drought data
+sum(fullDroughtIUCNdata$EOODataAvailable == "AvailableEOO" & fullDroughtIUCNdata$systems == "Freshwater (=Inland waters)", na.rm=TRUE)
+#385! a lot...
+
+#Terrestrial/Freshwater species with drought data
+sum(fullDroughtIUCNdata$EOODataAvailable == "AvailableEOO" & fullDroughtIUCNdata$systems == "Terrestrial|Freshwater (=Inland waters)", na.rm=TRUE)
+#900! a lot...
+
+#Terrestrial/marine species with drought data
+sum(fullDroughtIUCNdata$EOODataAvailable == "AvailableEOO" & fullDroughtIUCNdata$systems == "Terrestrial|Marine", na.rm=TRUE)
+#50
+
+#Terrestrial/Freshwater/Marine species with drought data
+sum(fullDroughtIUCNdata$EOODataAvailable == "AvailableEOO" & fullDroughtIUCNdata$systems == "Terrestrial|Freshwater (=Inland waters)|Marine", na.rm=TRUE)
+#21
+```
+<br>
+
+Quick bargraphs
+ 
+<br>
+
+```{r}
+speciessystems <- ggplot(data=fullDroughtIUCNdata, aes(systems, fill = EOODataAvailable)) +
+  geom_bar(position= "dodge") +
+  scale_fill_manual(name = "EOODataAvailable", values = c("#7D5D3A", "#53619E", "grey")) +
+  scale_y_log10() +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(y = "Count of Species (log10 transformed)", x = "Habitat Type (IUCN defined)") +
+  guides(fill=guide_legend("Drought Data Availability"))
+plot(speciessystems)
+```
+Aquatic plants problems: 
+
+<br>
+
+1) There are "freshwater" plants (764 species with Extents of Occurrence) that are included in the IUCN list AND our drought list - some of which ACTUALLY occupy water, some of which don't (grow along streams/rivers etc) and some of which can do both (juvenile in water and adult on land and vice versa) - what to do here as these plants may not actually be under "Drought" threat by the drought metrics we are using
+
+<br>
+ 
+2) Similar with "marine" plants (143 species with extents of occurrence) as above - but less are "both" or land dwelling near coast and more are actual sea grasses and other aquatic plants
+
+<br>
+
+3) Also related - there's these groups called "terrestrial/freshwater" (926 species with extents of occurrence) and "terrestrial/marine" (50 species with EOOs) and all three (22 species with EOOs) with a lot of species that have drought data! 
+
+<br>
+
+ 
+What to do for all of these aquatic plant cases - This is a total of 1884 species out of ~10,000 with EOO data available (and similar proportions for AOO data)... so a decent chunk. Do we look through one by one in their "habitat" description to select if they are aquatic or not? A lot of work! &#128128; &#128565; &#x1F635;
+
+Our solution - download growth form data from TRY - pull as much as possible of aquatic ONLY (still include plants that could be terrestrial as well because they will still be affected by drought) plant data and remove these species - THEN for the species leftover - remove any species that are in realms that are ONLY "marine" or "freshwater" or "marine/freshwater"
+
+All of this working has been done in a separate Rmarkdown as the file from TRY is just clunky and enormous. This gives us aquatic-ness of all the IUCN species (for which we can then subset our EOO species, AOO species and p50 species)
+
+
+<br>
+
+
+## Some interesting checks of the xylem traits data
+
+How many species on the IUCN have p50 data?
+```{r}
+p50graph <- fullDroughtIUCNdata %>%
+  mutate(p50available = ifelse(is.na(p50), "no", "yes")) %>%
+  ggplot(aes(p50available, fill = EOODataAvailable)) +
+  geom_bar(position= "dodge") +
+  scale_fill_manual(name = "EOODataAvailable", values = c("#7D5D3A", "#53619E", "grey")) +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(y = "Count of Species", x = "p50 Data Availability")
+p50graph
+```
+
+It is evident that very limited numbers of species have p50 data:
+
+- only 870 species (of ~66000) on the IUCN have any p50 data
+- only 124 of these have EOO data as well and only 12 are threatened
+
+Having a quick look at the spread of this p50 data
+```{r}
+p50plot <- fullDroughtIUCNdata %>%
+  mutate(dummy = "dummy") %>%
+  ggplot(aes(y= dummy,x = as.numeric(p50), fill = "#7D5D3A")) +
+  geom_density_ridges(scale = 2, alpha = 0.8, quantile_lines = T, quantile_fun = mean,
+    jittered_points = TRUE,
+    vline_width = 1, vline_color = "black",
+    point_size = 1.2, point_alpha = 0.2, point_color = "black", 
+    position = position_raincloud(adjust_vlines = FALSE, height = 0.18)) +
+  theme_classic() +
+  guides(fill = "none") +
+  labs(y = "", x = "p50 (MPa)")
+p50plot
+```
+
+We could think about other xylem functional traits too?
