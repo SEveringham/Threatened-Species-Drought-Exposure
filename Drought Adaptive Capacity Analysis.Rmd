@@ -78,7 +78,16 @@ droughtandxylemdatarobustsafetymargin <- droughtandxylemdatafull %>%
       frequency_585_proportion_non_robust == 1))
 ```
 
-## Check differences in p50 for threatened vs non-threatened species
+## Check threat status of species with both p50 and safety margin data
+```{r}
+threatenedspeciessensitivitydata <- droughtandxylemdatafull %>%
+  filter(!is.na(p50)) %>%
+  filter(!is.na(safetymargin)) %>%
+  filter(threatened == "threatened") %>%
+  group_by(redlistCategory.x) %>%
+  summarise(n())
+```
+
 
 ### Regression model
 ```{r}
