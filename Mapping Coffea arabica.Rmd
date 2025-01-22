@@ -1,0 +1,55 @@
+---
+title: "Mapping Coffea arabica"
+output:
+  html_document:
+    theme: flatly
+    toc: yes
+    toc_float: yes
+  pdf_document:
+    toc: yes
+  word_document:
+    toc: yes
+date: "2025-01-22"
+---
+
+## Libraries required
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(sf)
+```
+
+## Read in data
+```{r}
+Coffee_shapefile <- read_sf("Data/Data Used in Analyses/CoffeeMap/data_0.shp")
+Africa_shapefile <- read_sf("Data/Data Used in Analyses/AfricaMap/afr_g2014_2013_0.shp")
+```
+
+## Plot Africa
+
+This map will go as an inset with a square to show the section of ethiopia zoomed in
+```{r}
+Africamap <- ggplot() +
+  geom_sf(data= Africa_shapefile, fill = "white", color = "black", linewidth = 1.1) +
+  theme_void()
+Africamap
+
+ggsave(plot= Africamap, filename = "Outputs/Africamap.jpeg",  device = "jpeg", width = 10, height = 10)
+```
+
+
+Plot coffea arabica's distribution
+
+
+```{r}
+coffeemap <- ggplot() +
+  geom_sf(data= Africa_shapefile, fill = "white", color = "black", linewidth = 1.1) +
+  geom_sf(data= Coffee_shapefile, fill = "#E67F4B", color = "#E67F4B") +
+  coord_sf(xlim = c(31.5,43), ylim = c(3, 12)) +
+  theme_classic(base_size = 25)
+coffeemap
+
+ggsave(plot= coffeemap, filename = "Outputs/coffeemap.jpeg",  device = "jpeg", width = 10, height = 10)
+```
+
+
