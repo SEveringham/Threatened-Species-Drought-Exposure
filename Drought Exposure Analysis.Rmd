@@ -1650,7 +1650,7 @@ gives a bit more detail - not just a binary negative or positive as above. Could
 
 ```{r, fig.show="hold", out.width="50%", message = F, warning = F}
 #scenario SPP 2-4.5
-durationdensity245 <- droughtdatarobust %>%
+durationdensity245 <- pointdroughtdatarobust %>%
   filter(!redlistCategory.x == 'Data Deficient' & !redlistCategory.x == 'Extinct in the Wild' & !redlistCategory.x == 'Extinct' & !is.na(redlistCategory.x)) %>%
   mutate(redlistCategory.x= if_else(.$redlistCategory.x %in% c('Critically Endangered','Endangered', 'Vulnerable'), redlistCategory.x, "ynot threatened")) %>%
   ggplot(aes(x = duration_245_mean, y = redlistCategory.x, fill = redlistCategory.x)) +
@@ -1673,7 +1673,7 @@ durationdensity245 <- droughtdatarobust %>%
 durationdensity245
 
 #scenario SSP 5-8.5
-durationdensity585 <- droughtdatarobust %>%
+durationdensity585 <- pointdroughtdatarobust %>%
   filter(!redlistCategory.x == 'Data Deficient' & !redlistCategory.x == 'Extinct in the Wild' & !redlistCategory.x == 'Extinct' & !is.na(redlistCategory.x)) %>%
   mutate(redlistCategory.x= if_else(.$redlistCategory.x %in% c('Critically Endangered','Endangered', 'Vulnerable'), redlistCategory.x, "ynot threatened")) %>%
   ggplot(aes(x = duration_585_mean, y = redlistCategory.x, fill = redlistCategory.x)) +
@@ -2109,4 +2109,19 @@ plot(frequency585model)
 summary(frequency585model)
 #compare between each threat category with one another
 emmeans(frequency585model, list(pairwise ~ redlistCategory.x), adjust = "tukey")
+```
+
+### Pulling some stats to determine average drought duration change for different species (to report in results section)
+
+Really will show the real-world biology of the exposure experienced by species
+
+```{r}
+meansofdroughtchangepointdata <- pointdroughtdatarobust %>%
+  filter(!redlistCategory.x == 'Data Deficient' & !redlistCategory.x == 'Extinct in the Wild' & !redlistCategory.x == 'Extinct' & !is.na(redlistCategory.x)) %>%
+  mutate(threatened = if_else(.$redlistCategory.x %in% c('Critically Endangered','Endangered', 'Vulnerable'), "threatened", "not threatened")) %>%
+  group_by(threatened) %>%
+  summarise(averageduration245 = mean(duration_245_mean, na.rm = T),
+            averageduration585 = mean(duration_585_mean, na.rm = T),
+            averagefrequency245 = mean(frequency_245_mean, na.rm = T),
+            averagefrequency585 = mean(frequency_585_mean, na.rm = T))
 ```
