@@ -1022,6 +1022,18 @@ meansofdroughtchange <- droughtdatarobust %>%
             averagefrequency585 = mean(frequency_585_mean, na.rm = T))
 ```
 
+## Pulling the total number of species that have at least one pixel of drought INCREASE in any scenario for either duration or frequency projections (i.e. how many species out of the total species with any form of robust drought projection will be exposed to increases in drought AT ALL)
+
+```{r}
+totalspeciesexposedtoincreasesindrought <- droughtdatarobust %>%
+  filter(!redlistCategory.x == 'Data Deficient' & !redlistCategory.x == 'Extinct in the Wild' & !redlistCategory.x == 'Extinct' & !redlistCategory.x == 'Least Concern' & !redlistCategory.x == 'Near Threatened' & !redlistCategory.x == 'Lower Risk/near threatened' & !is.na(redlistCategory.x)) %>%
+  filter(duration_245_proportion_positive_value > 0 | duration_585_proportion_positive_value > 0 | frequency_245_proportion_positive_value > 0 | frequency_585_proportion_positive_value > 0)
+
+(2765/2886)*100
+
+```
+2765 threatened species out of 2886 threatened species will be exposed to some kind of drought increase (duration/frequency) under either moderate or high emissions scenarios which is 95.8% of threatened species!
+
 ## Determining if the species that have drought listed on their Red List assessment are actually more exposed to future drought
 
 ### First calculate the proportions of species that are 'highly exposed to drought' that don't have drought on their Red List assessment
