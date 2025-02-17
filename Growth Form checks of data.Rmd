@@ -25,9 +25,11 @@ plantsonIUCN <- read.csv("Data/Raw Data/assessments.csv") %>%
   select(-language, -rationale, -threats, -population, -populationTrend, -range, -useTrade, -conservationActions, -yearLastSeen, -scopes)
 
 growthform <- fread("Data/32845.txt", fill = TRUE)
-
 #this is a huge dataset with lots of values and is just generally extremely messy - first discovered that the value with most information is the "growth form complete" value
+```
 
+## Run filtering process
+```{r}
 growthformcomplete <- growthform %>%
   filter(OriglName == "growth form complete") %>%
   dplyr::rename(scientificName = SpeciesName)
@@ -132,7 +134,7 @@ fullIUCNandgrowthform <- df_list %>%
 
 <br>
 
-Quick plot for aquatic plants specifically
+## Quick plot for aquatic plants specifically
 
 ```{r}
 aquaticnessplot <- ggplot(data = fullIUCNandgrowthform, aes(Aquatic, fill = Aquatic)) +
@@ -146,7 +148,7 @@ plot(aquaticnessplot)
 ```
 
 <br> 
-Saving the relevant data for later!
+## Saving the relevant data for later!
 
 ```{r}
 write.csv(fullIUCNandgrowthform, "Data/Data Used in Analyses/fullIUCNandgrowthform.csv")
