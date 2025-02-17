@@ -2070,8 +2070,8 @@ frequencydensity585 <- pointdroughtdatarobust %>%
 
 frequencydensity585
 
-ggsave(plot= frequencydensity245, filename = "Outputs/Frequencydensity245.jpeg",  device = "jpeg", width = 10, height = 7)
-ggsave(plot= frequencydensity585, filename = "Outputs/Frequencydensity585.jpeg",  device = "jpeg", width = 10, height = 7)
+ggsave(plot= frequencydensity245, filename = "Outputs/Frequencydensity245point.jpeg",  device = "jpeg", width = 10, height = 7)
+ggsave(plot= frequencydensity585, filename = "Outputs/Frequencydensity585point.jpeg",  device = "jpeg", width = 10, height = 7)
 ```
 #### Testing differences between threatened and non-threatened plants
 
