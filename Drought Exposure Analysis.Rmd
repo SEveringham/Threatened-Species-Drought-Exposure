@@ -1030,7 +1030,6 @@ totalspeciesexposedtoincreasesindrought <- droughtdatarobust %>%
   filter(duration_245_proportion_positive_value > 0 | duration_585_proportion_positive_value > 0 | frequency_245_proportion_positive_value > 0 | frequency_585_proportion_positive_value > 0)
 
 (2765/2886)*100
-
 ```
 2765 threatened species out of 2886 threatened species will be exposed to some kind of drought increase (duration/frequency) under either moderate or high emissions scenarios which is 95.8% of threatened species!
 
