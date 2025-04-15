@@ -2136,3 +2136,101 @@ meansofdroughtchangepointdata <- pointdroughtdatarobust %>%
             averagefrequency245 = mean(frequency_245_mean, na.rm = T),
             averagefrequency585 = mean(frequency_585_mean, na.rm = T))
 ```
+
+## Repeating the testing differences between threatened and non-threatened plants in drought exposure with ONLY species in drought increasing regions
+
+### For drought duration
+
+Run a multiple regression to test if there are significant differences between threatened plants and non-threatened plants (and the groups between threat categories) for drought duration change in the future
+
+For SSP2-4.5
+```{r}
+#filter and create levels for the four categories of data (not threatened, vulnerable, endangered, critically endangered)
+duration245dataformodel <- droughtdatarobust %>%
+  filter(!redlistCategory.x == 'Data Deficient' & !redlistCategory.x == 'Extinct in the Wild' & !redlistCategory.x == 'Extinct' & !is.na(redlistCategory.x)) %>%
+  mutate(redlistCategory.x= ifelse(redlistCategory.x == 'Vulnerable', '2', 
+                                           ifelse(redlistCategory.x == 'Endangered', '3',
+                                                  ifelse(redlistCategory.x == 'Critically Endangered', '4',
+                                                         if_else(.$redlistCategory.x %in% c('Critically Endangered','Endangered', 'Vulnerable'), redlistCategory.x, '1'))))) %>%
+  filter(duration_245_mean > 0) #filtering for just species with average INCREASES in drought duration
+
+#run linear model
+duration245model <- lm(duration_245_mean ~ as.factor(redlistCategory.x), data = duration245dataformodel)
+#check assumptions
+plot(duration245model)
+#get model output
+summary(duration245model)
+#compare between each threat category with one another
+emmeans(duration245model, list(pairwise ~ redlistCategory.x), adjust = "tukey")
+```
+
+for SSP5-8.5
+```{r}
+#filter and create levels for the four categories of data (not threatened, vulnerable, endangered, critically endangered)
+duration585dataformodel <- droughtdatarobust %>%
+  filter(!redlistCategory.x == 'Data Deficient' & !redlistCategory.x == 'Extinct in the Wild' & !redlistCategory.x == 'Extinct' & !is.na(redlistCategory.x)) %>%
+  mutate(redlistCategory.x= ifelse(redlistCategory.x == 'Vulnerable', '2', 
+                                           ifelse(redlistCategory.x == 'Endangered', '3',
+                                                  ifelse(redlistCategory.x == 'Critically Endangered', '4',
+                                                         if_else(.$redlistCategory.x %in% c('Critically Endangered','Endangered', 'Vulnerable'), redlistCategory.x, '1'))))) %>%
+  filter(duration_585_mean > 0) #filtering for just species with average INCREASES in drought duration
+
+
+#run linear model
+duration585model <- lm(duration_585_mean ~ as.factor(redlistCategory.x), data = duration585dataformodel)
+#check assumptions
+plot(duration585model)
+#get model output
+summary(duration585model)
+#compare between each threat category with one another
+emmeans(duration585model, list(pairwise ~ redlistCategory.x), adjust = "tukey")
+```
+### For drought frequency
+
+Run a multiple regression to test if there are significant differences between threatened plants and non-threatened plants (and the groups between threat categories) for drought frequency change in the future
+
+For SSP2-4.5
+```{r}
+#filter and create levels for the four categories of data (not threatened, vulnerable, endangered, critically endangered)
+frequency245dataformodel <- droughtdatarobust %>%
+  filter(!redlistCategory.x == 'Data Deficient' & !redlistCategory.x == 'Extinct in the Wild' & !redlistCategory.x == 'Extinct' & !is.na(redlistCategory.x)) %>%
+  mutate(redlistCategory.x= ifelse(redlistCategory.x == 'Vulnerable', '2', 
+                                           ifelse(redlistCategory.x == 'Endangered', '3',
+                                                  ifelse(redlistCategory.x == 'Critically Endangered', '4',
+                                                         if_else(.$redlistCategory.x %in% c('Critically Endangered','Endangered', 'Vulnerable'), redlistCategory.x, '1'))))) %>%
+  filter(frequency_245_mean > 0) #filtering for just species with average INCREASES in drought frequency
+
+
+#run linear model
+frequency245model <- lm(frequency_245_mean ~ as.factor(redlistCategory.x), data = frequency245dataformodel)
+#check assumptions
+plot(frequency245model)
+#get model output
+summary(frequency245model)
+#compare between each threat category with one another
+emmeans(frequency245model, list(pairwise ~ redlistCategory.x), adjust = "tukey")
+```
+
+For SSP5-8.5
+```{r}
+#filter and create levels for the four categories of data (not threatened, vulnerable, endangered, critically endangered)
+frequency585dataformodel <- droughtdatarobust %>%
+  filter(!redlistCategory.x == 'Data Deficient' & !redlistCategory.x == 'Extinct in the Wild' & !redlistCategory.x == 'Extinct' & !is.na(redlistCategory.x)) %>%
+  mutate(redlistCategory.x= ifelse(redlistCategory.x == 'Vulnerable', '2', 
+                                           ifelse(redlistCategory.x == 'Endangered', '3',
+                                                  ifelse(redlistCategory.x == 'Critically Endangered', '4',
+                                                         if_else(.$redlistCategory.x %in% c('Critically Endangered','Endangered', 'Vulnerable'), redlistCategory.x, '1'))))) %>%
+  filter(frequency_585_mean > 0) #filtering for just species with average INCREASES in drought frequency
+
+#run linear model
+frequency585model <- lm(frequency_585_mean ~ as.factor(redlistCategory.x), data = frequency585dataformodel)
+#check assumptions
+plot(frequency585model)
+#get model output
+summary(frequency585model)
+#compare between each threat category with one another
+emmeans(frequency585model, list(pairwise ~ redlistCategory.x), adjust = "tukey")
+```
+
+
+
