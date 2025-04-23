@@ -39,11 +39,17 @@ library(ggbeeswarm)
 
 ## Read in data
 ```{r}
-droughtdatasaved <- read.csv("Data/Data Used in Analyses/fulldroughtwithxylemdata.csv")
+droughtdatasaved <- read.csv("Data/Data Used in Analyses/fulldroughtwithxylemdata.csv") %>%
+  mutate(frequency_585_proportion_non_robust = as.numeric(frequency_585_proportion_non_robust)) %>% 
+  mutate(frequency_585_proportion_negative_value = as.numeric(frequency_585_proportion_negative_value)) %>%
+  mutate(frequency_245_mean = as.numeric(frequency_245_mean))# some columns with a few missing values being read as character - fixed this
+  
+
 growthform <- read.csv("Data/Data Used in Analyses/fullIUCNandgrowthform.csv")
 
 droughtdatafull <- left_join(droughtdatasaved, growthform, by = 'scientificName') %>%
   filter(!Aquatic == "yes") #remove the aquatic species - gives us 65746 terrestrial plants on IUCN
+
 
 droughtdata <- droughtdatafull %>%
   filter(EOODataAvailable == "AvailableEOO") #subset just EOO data - gives us 10131 species
@@ -128,8 +134,8 @@ plot(robustnessofdroughtprojection245freq)
 sum(droughtdata$frequency_245_proportion_non_robust == 1)
 #3903 species we cannot use!
 
-robustnessofdroughtprojection585 <- ggplot(data=droughtdata, aes(x =frequency_585_proportion_non_robust,fill = "#53619E")) +
-  geom_histogram(colour = "grey40", bins = 100) +
+robustnessofdroughtprojection585 <- ggplot(data=droughtdata, aes(x =frequency_585_proportion_non_robust, fill = "#53619E")) +
+  geom_histogram(stat = "count", colour = "grey40", bins = 100) +
   ggplot2::annotate("text",
     label="d) SSP5-8.5 - frequency", 
     x=0.34,
