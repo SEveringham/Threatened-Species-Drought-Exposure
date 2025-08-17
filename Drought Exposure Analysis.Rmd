@@ -169,6 +169,14 @@ droughtdatarobust <- droughtdata %>%
       droughtdata$duration_585_proportion_non_robust == 1 &
         droughtdata$frequency_245_proportion_non_robust == 1 &
       droughtdata$frequency_585_proportion_non_robust == 1))
+
+#save this data- may need just a matrix of species with exposure change values for both scenarios (and only save threatened species)
+droughtexposuredata <- droughtdatarobust %>%
+  select(scientificName, redlistCategory.x, eoo_km2, duration_245_mean, duration_585_mean, frequency_245_mean, frequency_585_mean, p50) %>%
+  filter(redlistCategory.x %in% c("Critically Endangered", "Endangered", "Vulnerable"))
+
+#save as csv
+write.csv(droughtexposuredata, "Data/Data Used in Analyses/cleanedexposurematrix.csv")
 ```
 
 Now we are left with 7647 species with extents of occurrence in at least a small proportion of their range in a robust drought projected area for either scenario
