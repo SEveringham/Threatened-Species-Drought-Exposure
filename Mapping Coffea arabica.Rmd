@@ -23,6 +23,8 @@ library(sf)
 ```{r}
 Coffee_shapefile <- read_sf("Data/Data Used in Analyses/CoffeeMap/data_0.shp")
 Africa_shapefile <- read_sf("Data/Data Used in Analyses/AfricaMap/afr_g2014_2013_0.shp")
+Banksia_shapefile <- read_sf("Data/Data Used in Analyses/BanksiaMap/data_0.shp")
+Australia_shapefile <- read_sf("Data/Data Used in Analyses/AustraliaMap/coastline_250m.shp")
 ```
 
 ## Plot Africa
@@ -51,5 +53,28 @@ coffeemap
 
 ggsave(plot= coffeemap, filename = "Outputs/coffeemap.jpeg",  device = "jpeg", width = 10, height = 10)
 ```
+## Plot Australia
+
+This map will go as an inset with a square to show the section of SW WA shown
+```{r}
+Ausamap <- ggplot() +
+  geom_sf(data= Australia_shapefile, fill = "white", color = "black", linewidth = 1.1) +
+  theme_void()
+Ausamap
+
+ggsave(plot= Ausamap, filename = "Outputs/Australiaamap.jpeg",  device = "jpeg", width = 10, height = 10)
+```
+
+plot babksia ilicifolias's distribution
 
 
+```{r}
+banksiamap <- ggplot() +
+  geom_sf(data= Australia_shapefile, fill = "white", color = "black", linewidth = 1.1) +
+  geom_sf(data = Banksia_shapefile, fill = "#E67F4B", color = "#E67F4B") +
+  coord_sf(xlim = c(114,125), ylim = c(-29, -36)) +
+  theme_classic(base_size = 25)
+banksiamap
+
+ggsave(plot= banksiamap, filename = "Outputs/banksiamap.jpeg",  device = "jpeg", width = 10, height = 8)
+```
