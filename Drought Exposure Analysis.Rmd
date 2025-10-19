@@ -48,14 +48,36 @@ droughtdatasaved <- read.csv("Data/Data Used in Analyses/fulldroughtwithxylemdat
 growthform <- read.csv("Data/Data Used in Analyses/fullIUCNandgrowthform.csv")
 
 droughtdatafull <- left_join(droughtdatasaved, growthform, by = 'scientificName') %>%
-  filter(!Aquatic == "yes") #remove the aquatic species - gives us 65746 terrestrial plants on IUCN
+  filter(!Aquatic == "yes") %>%
+  filter(!scientificName %in% c(
+    "Alisma wahlenbergii",
+    "Aponogeton ranunculiflorus",
+    "Najas madagascariensis",
+    "Isoetes boryana",
+    "Isoetes capensis",
+    "Isoetes haussknechtii",
+    "Isoetes perrieriana",
+    "Isoetes todaroana",
+    "Isoetes wormaldii",
+    "Rhyncholacis nobilis",
+    "Saxicolella marginalis",
+    "Ammannia calcicola",
+    "Ammannia cryptantha",
+    "Ammannia heterophylla",
+    "Ammannia pauciramosa",
+    "Ammannia quadriciliata",
+    "Marsilea schelpeana",
+    "Pilularia minuta",
+    "Nymphoides herzogii",
+    "Villarsia goldblattiana"
+  )) #remove the aquatic species - both from the growth form checks and also 20 more that were picked up later in the analysis gives us 65726 terrestrial plants on IUCN
 
 
 droughtdata <- droughtdatafull %>%
-  filter(EOODataAvailable == "AvailableEOO") #subset just EOO data - gives us 10131 species
+  filter(EOODataAvailable == "AvailableEOO") #subset just EOO data - gives us 10111 species
 
 pointdroughtdata <- droughtdatafull %>%
-  filter(EOODataAvailable == "AvailablePoint") #subset just AOO data - gives us 36262 species
+  filter(EOODataAvailable == "AvailablePoint") #subset just AOO data - gives us 36260 species
 ```
 
 ## Sourcing Functions
@@ -92,7 +114,7 @@ plot(robustnessofdroughtprojection245dur)
 
 #quick count of species we can't include for duration projections in scenario 245
 sum(droughtdata$duration_245_proportion_non_robust == 1)
-#5311 species we cannot use!
+#5306 species we cannot use!
 
 robustnessofdroughtprojection585dur <- ggplot(data=droughtdata, aes(x =duration_585_proportion_non_robust,fill = "#53619E")) +
   geom_histogram(colour = "grey40", bins = 100) +
@@ -113,7 +135,7 @@ plot(robustnessofdroughtprojection585dur)
 
 #quick count of species we can't include for duration projections in scenario 585
 sum(droughtdata$duration_585_proportion_non_robust == 1)
-#3696 species we cannot use for scenario SSp 5-8.5
+#3695 species we cannot use for scenario SSp 5-8.5
 
 robustnessofdroughtprojection245freq <- ggplot(data=droughtdata, aes(x = frequency_245_proportion_non_robust, fill = "#53619E")) +
   geom_histogram(colour = "grey40", bins = 100) +
@@ -132,7 +154,7 @@ plot(robustnessofdroughtprojection245freq)
 
 #quick count of species we can't include for scenario 245
 sum(droughtdata$frequency_245_proportion_non_robust == 1)
-#3903 species we cannot use!
+#3902 species we cannot use!
 
 robustnessofdroughtprojection585 <- ggplot(data=droughtdata, aes(x =frequency_585_proportion_non_robust, fill = "#53619E")) +
   geom_histogram(stat = "count", colour = "grey40", bins = 100) +
@@ -179,7 +201,7 @@ droughtexposuredata <- droughtdatarobust %>%
 write.csv(droughtexposuredata, "Data/Data Used in Analyses/cleanedexposurematrix.csv")
 ```
 
-Now we are left with 7647 species with extents of occurrence in at least a small proportion of their range in a robust drought projected area for either scenario
+Now we are left with 7627 species with extents of occurrence in at least a small proportion of their range in a robust drought projected area for either scenario
 
 ## Threat status
 
@@ -379,25 +401,6 @@ durationdotplot
 
 ggsave(plot= durationdotplot, filename = "Outputs/DurationDotPlot.jpeg",  device = "jpeg", width = 10, height = 9)
 ```
-<br>
-Some key stats from above figures:
-
-For SSP 2-4.5
-
-- 97.1% of species (1427 species out of 1469) have some part of their range that falls into at least one area of an increase in drought duration
-- 66.4% of species (975 out of 1469) have their entire range falling into areas that increase in drought duration
-- 3.0% of species (44 out of 1469) have some part of their range that falls into at least one area of a decrease in drought duration
-- Only one singular species (<1%) has it’s entire range falling into regions with decreases in drought duration
-
-<br>
-
-For SSP 5-8.5 (similar stats to above scenario - they just get a tiny bit worse…)
-<br>
-
-- 98.0% of species (2287 species out of 2334) have some part of their range that falls into at least one area of an increase in drought duration
-- 76.2% of species (1779 out of 2334) have their entire range falling into areas that increase in drought duration
-- 2.6% of species (60 out of 2334) have some part of their range that falls into at least one area of a decrease in drought duration
-- Only two species (<1%) have their entire range falling into regions with decreases in drought duration
 
 <br>
 We also need to determine the AVERAGE proportion of any species range that falls into drought increasing/decreasing regions (where species that have entire ranges falling into certain scenarios are excluded)
@@ -407,11 +410,6 @@ proportiondroughtdurationincreasingordecreasingmeans <- BothScenariosData %>%
   summarise(mean = mean(proportion, na.rm = T))
 ```
 
-This data shows us that on average, species will:
-- Under SSP2-4.5 have around 0.13 of their range in drought duration decreasing regions and 0.47 of their range in drought increasing regions
-- Under SSP5-8.5 have around 0.20 of their range in drought duration decreasing regions and 0.50 of their range in drought increasing regions
-
-<br>
 
 
 Now same violing plots but with comparing across threatened species (vulnerable, endangered, critically endangered) 
@@ -772,28 +770,6 @@ frequencydotplot
 
 ggsave(plot= frequencydotplot, filename = "Outputs/frequencyDotPlot.jpeg",  device = "jpeg", width = 10, height = 9)
 ```
-<br>
-
-Some key stats from above figures:
-
-For SSP 2-4.5
-
-- 96.4% of species (2125 species out of 2205) have some part of their range that falls into at least one area of an increase in drought frequency
-- 67.6% of species (1490 out of 2205) have their entire range falling into areas that increase in drought frequency
-- 4.3% of species (95 out of 2205) have some part of their range that falls into at least one area of a decrease in drought frequency
-- Only 8 species (<1%) has their entire range falling into regions with decreases in drought frequency
-
-
-<br>
-<br> 
-
-For SSP 5-8.5 (similar stats to above scenario - they just get a tiny bit worse…)
-<br>
-
-- 95.6% of species (2273 species out of 2380) have some part of their range that falls into at least one area of an increase in drought duration
-- 78.9% of species (1877 out of 2380) have their entire range falling into areas that increase in drought duration
-- 5.2% of species (126 out of 2380) have some part of their range that falls into at least one area of a decrease in drought duration
-- Only 25 species (1.0%) have their entire range falling into regions with decreases in drought frequency
 
 br>
 We also need to determine the AVERAGE proportion of any species range that falls into drought increasing/decreasing regions (where species that have entire ranges falling into certain scenarios are excluded)
@@ -1043,7 +1019,7 @@ totalspeciesexposedtoincreasesindrought <- droughtdatarobust %>%
   filter(!redlistCategory.x == 'Data Deficient' & !redlistCategory.x == 'Extinct in the Wild' & !redlistCategory.x == 'Extinct' & !redlistCategory.x == 'Least Concern' & !redlistCategory.x == 'Near Threatened' & !redlistCategory.x == 'Lower Risk/near threatened' & !is.na(redlistCategory.x)) %>%
   filter(duration_245_proportion_positive_value > 0 | duration_585_proportion_positive_value > 0 | frequency_245_proportion_positive_value > 0 | frequency_585_proportion_positive_value > 0)
 
-(2765/2886)*100
+(2746/2866)*100
 ```
 2765 threatened species out of 2886 threatened species will be exposed to some kind of drought increase (duration/frequency) under either moderate or high emissions scenarios which is 95.8% of threatened species!
 
