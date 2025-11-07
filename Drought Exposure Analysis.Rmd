@@ -78,6 +78,8 @@ droughtdata <- droughtdatafull %>%
 
 pointdroughtdata <- droughtdatafull %>%
   filter(EOODataAvailable == "AvailablePoint") #subset just AOO data - gives us 36260 species
+
+growthformanalysisdata <- read.csv("Data/Data Used in Analyses/growthformanalysisdata.csv")
 ```
 
 ## Sourcing Functions
@@ -779,12 +781,6 @@ proportiondroughtfrequencyincreasingordecreasingmeans <- BothScenariosData %>%
   summarise(mean = mean(proportion, na.rm = T))
 ```
 
-This data shows us that on average, species will:
-- Under SSP2-4.5 have around 0.25 of their range in drought duration decreasing regions and 0.58 of their range in drought increasing regions
-- Under SSP5-8.5 have around 0.31 of their range in drought duration decreasing regions and 0.46 of their range in drought increasing regions
-
-<br>
-
 
 Now same violin plots but with JUST threatened species (vulnerable, endangered, critically endangered) and comparing these groups
 ```{r,max.height='200px', fig.show="hold", out.width="50%", message = F, warning = F}
@@ -1022,6 +1018,168 @@ totalspeciesexposedtoincreasesindrought <- droughtdatarobust %>%
 (2746/2866)*100
 ```
 2765 threatened species out of 2886 threatened species will be exposed to some kind of drought increase (duration/frequency) under either moderate or high emissions scenarios which is 95.8% of threatened species!
+
+
+## Growth form exposure analysis
+
+Running an analysis to test if there are any significant differences in drought exposure between growth forms and creating a visualisation of this - this was a new analysis brought in after a second round of revisions. 
+
+We have two categories - the allocated growth form of the species and whether or not it is woody.
+
+### Growth form
+
+For Drought duration
+
+SSP2-4.5
+```{r}
+#run linear model
+duration245growthformmodel <- lm(duration_projected_245_mean ~ as.factor(growth_form), data = growthformanalysisdata)
+#check assumptions
+plot(duration245growthformmodel)
+#get model output
+summary(duration245growthformmodel)
+#compare between each threat category with one another
+emmeans(duration245growthformmodel, list(pairwise ~ growth_form), adjust = "tukey")
+```
+SSP5-8.5
+
+```{r}
+#run linear model
+duration585growthformmodel <- lm(duration_projected_585_mean ~ as.factor(growth_form), data = growthformanalysisdata)
+#check assumptions
+plot(duration585growthformmodel)
+#get model output
+summary(duration585growthformmodel)
+#compare between each threat category with one another
+emmeans(duration585growthformmodel, list(pairwise ~ growth_form), adjust = "tukey")
+```
+
+For drought frequency
+
+SSP2-4.5
+```{r}
+#run linear model
+frequency245growthformmodel <- lm(frequency_projected_245_mean ~ as.factor(growth_form), data = growthformanalysisdata)
+#check assumptions
+plot(frequency245growthformmodel)
+#get model output
+summary(frequency245growthformmodel)
+#compare between each threat category with one another
+emmeans(frequency245growthformmodel, list(pairwise ~ growth_form), adjust = "tukey")
+```
+
+SSP5-8.5
+```{r}
+#run linear model
+frequency585growthformmodel <- lm(frequency_projected_585_mean ~ as.factor(growth_form), data = growthformanalysisdata)
+#check assumptions
+plot(frequency585growthformmodel)
+#get model output
+summary(frequency585growthformmodel)
+#compare between each threat category with one another
+emmeans(frequency585growthformmodel, list(pairwise ~ growth_form), adjust = "tukey")
+```
+
+#### Growth form plots
+
+Visualisation of the differences between growth forms and average drought exposure
+
+Drought duration
+```{r, fig.show="hold", out.width="50%", message = F, warning = F}
+#scenario SPP 2-4.5
+durationgrowthformdensity245 <- growthformanalysisdata %>%
+  ggplot(aes(x = duration_projected_245_mean, y = growth_form, fill = "#7BCADE")) +
+  geom_density_ridges(fill = "#7BCADE", scale = 0.7, alpha = 0.8, quantile_lines = T, quantile_fun = mean,
+    jittered_points = TRUE,
+    vline_size = 1, vline_color = "black",
+    point_size = 1.2, point_alpha = 0.2, point_color = "black", 
+    position = position_raincloud(adjust_vlines = FALSE, height = 0.18)) + 
+  scale_y_discrete(expand = c(0, 0)) +     # will generally have to set the `expand` option
+  scale_x_continuous(expand = c(0, 0)) +   # for both axes to remove unneeded padding
+  coord_cartesian(clip = "off") + # to avoid clipping of the very top of the top ridgeline
+  guides(fill = "none") +
+  xlab("Mean Drought Duration Change for SSP 2-4.5 Projection (months)") +
+  ylab("") +
+  theme_ridges() +
+  geom_vline(xintercept = 0, size =1, color = "black", linetype = "dashed") +
+  xlim(-1, 5)
+
+durationgrowthformdensity245
+
+#scenario SSP 5-8.5
+durationgrowthformdensity585 <- growthformanalysisdata %>%
+  ggplot(aes(x = duration_projected_585_mean, y = growth_form, fill = "#7BCADE")) +
+  geom_density_ridges(fill = "#7BCADE", scale = 0.7, alpha = 0.8, quantile_lines = T, quantile_fun = mean,
+    jittered_points = TRUE,
+    vline_size = 1, vline_color = "black",
+    point_size = 1.2, point_alpha = 0.2, point_color = "black", 
+    position = position_raincloud(adjust_vlines = FALSE, height = 0.18)) + 
+  scale_y_discrete(expand = c(0, 0)) +     # will generally have to set the `expand` option
+  scale_x_continuous(expand = c(0, 0)) +   # for both axes to remove unneeded padding
+  coord_cartesian(clip = "off") + # to avoid clipping of the very top of the top ridgeline
+  guides(fill = "none") +
+  xlab("Mean Drought Duration Change for SSP 5-8.5 Projection (months)") +
+  ylab("") +
+  theme_ridges() +
+  geom_vline(xintercept = 0, size =1, color = "black", linetype = "dashed") +
+  xlim(-1, 5)
+
+durationgrowthformdensity585
+
+#save these plots
+
+ggsave(plot= durationgrowthformdensity245, filename = "Outputs/Durationdensitygrowthform245.jpeg",  device = "jpeg", width = 10, height = 7)
+ggsave(plot= durationgrowthformdensity585, filename = "Outputs/Durationdensitygrowthform585.jpeg",  device = "jpeg", width = 10, height = 7)
+```
+Drought frequency
+```{r, fig.show="hold", out.width="50%", message = F, warning = F}
+#scenario SPP 2-4.5
+frequencygrowthformdensity245 <- growthformanalysisdata %>%
+  ggplot(aes(x = frequency_projected_245_mean, y = growth_form, fill = "#7BCADE")) +
+  geom_density_ridges(fill = "#7BCADE", scale = 0.7, alpha = 0.8, quantile_lines = T, quantile_fun = mean,
+    jittered_points = TRUE,
+    vline_size = 1, vline_color = "black",
+    point_size = 1.2, point_alpha = 0.2, point_color = "black", 
+    position = position_raincloud(adjust_vlines = FALSE, height = 0.18)) + 
+  scale_y_discrete(expand = c(0, 0)) +     # will generally have to set the `expand` option
+  scale_x_continuous(expand = c(0, 0)) +   # for both axes to remove unneeded padding
+  coord_cartesian(clip = "off") + # to avoid clipping of the very top of the top ridgeline
+  guides(fill = "none") +
+  xlab("Mean Drought frequency Change for SSP 2-4.5 Projection (events/10 years)") +
+  ylab("") +
+  theme_ridges() +
+  geom_vline(xintercept = 0, size =1, color = "black", linetype = "dashed") +
+  xlim(-0.7, 0.7)
+
+frequencygrowthformdensity245
+
+#scenario SSP 5-8.5
+frequencygrowthformdensity585 <- growthformanalysisdata %>%
+  ggplot(aes(x = frequency_projected_585_mean, y = growth_form, fill = "#7BCADE")) +
+  geom_density_ridges(fill = "#7BCADE", scale = 0.7, alpha = 0.8, quantile_lines = T, quantile_fun = mean,
+    jittered_points = TRUE,
+    vline_size = 1, vline_color = "black",
+    point_size = 1.2, point_alpha = 0.2, point_color = "black", 
+    position = position_raincloud(adjust_vlines = FALSE, height = 0.18)) + 
+  scale_y_discrete(expand = c(0, 0)) +     # will generally have to set the `expand` option
+  scale_x_continuous(expand = c(0, 0)) +   # for both axes to remove unneeded padding
+  coord_cartesian(clip = "off") + # to avoid clipping of the very top of the top ridgeline
+  guides(fill = "none") +
+  xlab("Mean Drought Frequency Change for SSP 5-8.5 Projection (events/10 years)") +
+  ylab("") +
+  theme_ridges() +
+  geom_vline(xintercept = 0, size =1, color = "black", linetype = "dashed") +
+  xlim(-0.7, 0.7)
+
+frequencygrowthformdensity585
+
+#save these plots
+
+ggsave(plot= frequencygrowthformdensity245, filename = "Outputs/frequencydensitygrowthform245.jpeg",  device = "jpeg", width = 10, height = 7)
+ggsave(plot= frequencygrowthformdensity585, filename = "Outputs/frequencydensitygrowthform585.jpeg",  device = "jpeg", width = 10, height = 7)
+```
+### Woodiness
+
 
 ## Determining if the species that have drought listed on their Red List assessment are actually more exposed to future drought
 
