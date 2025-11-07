@@ -1180,6 +1180,147 @@ ggsave(plot= frequencygrowthformdensity585, filename = "Outputs/frequencydensity
 ```
 ### Woodiness
 
+Now running an analysis for each scenario for duration and frequency to determine if there any significant differences in drought exposure for woody versus non-woody species
+
+Drought Duration
+
+SSP2-4.5
+```{r}
+#run linear model
+duration245woodinessmodel <- lm(duration_projected_245_mean ~ as.factor(woodiness), data = growthformanalysisdata)
+#check assumptions
+plot(duration245woodinessmodel)
+#get model output
+summary(duration245woodinessmodel)
+```
+SSP5-8.5
+```{r}
+#run linear model
+duration585woodinessmodel <- lm(duration_projected_585_mean ~ as.factor(woodiness), data = growthformanalysisdata)
+#check assumptions
+plot(duration585woodinessmodel)
+#get model output
+summary(duration585woodinessmodel)
+```
+
+Drought frequency
+
+SSP2-4.5
+```{r}
+#run linear model
+frequency245woodinessmodel <- lm(frequency_projected_245_mean ~ as.factor(woodiness), data = growthformanalysisdata)
+#check assumptions
+plot(frequency245woodinessmodel)
+#get model output
+summary(frequency245woodinessmodel)
+```
+SSP5-8.5
+```{r}
+#run linear model
+frequency585woodinessmodel <- lm(frequency_projected_585_mean ~ as.factor(woodiness), data = growthformanalysisdata)
+#check assumptions
+plot(frequency585woodinessmodel)
+#get model output
+summary(frequency585woodinessmodel)
+```
+
+#### Woodiness plots
+Drought duration
+```{r, fig.show="hold", out.width="50%", message = F, warning = F}
+#scenario SPP 2-4.5
+durationwoodinessdensity245 <- growthformanalysisdata %>%
+  ggplot(aes(x = duration_projected_245_mean, y = woodiness, fill = "#7BCADE")) +
+  geom_density_ridges(fill = "#7BCADE", scale = 0.7, alpha = 0.8, quantile_lines = T, quantile_fun = mean,
+    jittered_points = TRUE,
+    vline_size = 1, vline_color = "black",
+    point_size = 1.2, point_alpha = 0.2, point_color = "black", 
+    position = position_raincloud(adjust_vlines = FALSE, height = 0.18)) + 
+  scale_y_discrete(expand = c(0, 0)) +     # will generally have to set the `expand` option
+  scale_x_continuous(expand = c(0, 0)) +   # for both axes to remove unneeded padding
+  coord_cartesian(clip = "off") + # to avoid clipping of the very top of the top ridgeline
+  guides(fill = "none") +
+  xlab("Mean Drought Duration Change for SSP 2-4.5 Projection (months)") +
+  ylab("") +
+  theme_ridges() +
+  geom_vline(xintercept = 0, size =1, color = "black", linetype = "dashed") +
+  xlim(-1, 5)
+
+durationwoodinessdensity245
+
+#scenario SSP 5-8.5
+durationwoodiness585 <- growthformanalysisdata %>%
+  ggplot(aes(x = duration_projected_585_mean, y = woodiness, fill = "#7BCADE")) +
+  geom_density_ridges(fill = "#7BCADE", scale = 0.7, alpha = 0.8, quantile_lines = T, quantile_fun = mean,
+    jittered_points = TRUE,
+    vline_size = 1, vline_color = "black",
+    point_size = 1.2, point_alpha = 0.2, point_color = "black", 
+    position = position_raincloud(adjust_vlines = FALSE, height = 0.18)) + 
+  scale_y_discrete(expand = c(0, 0)) +     # will generally have to set the `expand` option
+  scale_x_continuous(expand = c(0, 0)) +   # for both axes to remove unneeded padding
+  coord_cartesian(clip = "off") + # to avoid clipping of the very top of the top ridgeline
+  guides(fill = "none") +
+  xlab("Mean Drought Duration Change for SSP 5-8.5 Projection (months)") +
+  ylab("") +
+  theme_ridges() +
+  geom_vline(xintercept = 0, size =1, color = "black", linetype = "dashed") +
+  xlim(-1, 5)
+
+durationwoodiness585
+
+#save these plots
+
+ggsave(plot= durationwoodinessdensity245, filename = "Outputs/Durationdensitywoodiness245.jpeg",  device = "jpeg", width = 10, height = 7)
+ggsave(plot= durationwoodiness585, filename = "Outputs/Durationdensitywoodiness585.jpeg",  device = "jpeg", width = 10, height = 7)
+```
+
+Drought frequency
+```{r, fig.show="hold", out.width="50%", message = F, warning = F}
+#scenario SPP 2-4.5
+frequencywoodinessdensity245 <- growthformanalysisdata %>%
+  ggplot(aes(x = frequency_projected_245_mean, y = woodiness, fill = "#7BCADE")) +
+  geom_density_ridges(fill = "#7BCADE", scale = 0.7, alpha = 0.8, quantile_lines = T, quantile_fun = mean,
+    jittered_points = TRUE,
+    vline_size = 1, vline_color = "black",
+    point_size = 1.2, point_alpha = 0.2, point_color = "black", 
+    position = position_raincloud(adjust_vlines = FALSE, height = 0.18)) + 
+  scale_y_discrete(expand = c(0, 0)) +     # will generally have to set the `expand` option
+  scale_x_continuous(expand = c(0, 0)) +   # for both axes to remove unneeded padding
+  coord_cartesian(clip = "off") + # to avoid clipping of the very top of the top ridgeline
+  guides(fill = "none") +
+  xlab("Mean Drought frequency Change for SSP 2-4.5 Projection (months)") +
+  ylab("") +
+  theme_ridges() +
+  geom_vline(xintercept = 0, size =1, color = "black", linetype = "dashed") +
+  xlim(-0.7, 0.7)
+
+frequencywoodinessdensity245
+
+#scenario SSP 5-8.5
+frequencywoodiness585 <- growthformanalysisdata %>%
+  ggplot(aes(x = frequency_projected_585_mean, y = woodiness, fill = "#7BCADE")) +
+  geom_density_ridges(fill = "#7BCADE", scale = 0.7, alpha = 0.8, quantile_lines = T, quantile_fun = mean,
+    jittered_points = TRUE,
+    vline_size = 1, vline_color = "black",
+    point_size = 1.2, point_alpha = 0.2, point_color = "black", 
+    position = position_raincloud(adjust_vlines = FALSE, height = 0.18)) + 
+  scale_y_discrete(expand = c(0, 0)) +     # will generally have to set the `expand` option
+  scale_x_continuous(expand = c(0, 0)) +   # for both axes to remove unneeded padding
+  coord_cartesian(clip = "off") + # to avoid clipping of the very top of the top ridgeline
+  guides(fill = "none") +
+  xlab("Mean Drought frequency Change for SSP 5-8.5 Projection (months)") +
+  ylab("") +
+  theme_ridges() +
+  geom_vline(xintercept = 0, size =1, color = "black", linetype = "dashed") +
+  xlim(-0.7, 0.7)
+
+frequencywoodiness585
+
+#save these plots
+
+ggsave(plot= frequencywoodinessdensity245, filename = "Outputs/frequencydensitywoodiness245.jpeg",  device = "jpeg", width = 10, height = 7)
+ggsave(plot= frequencywoodiness585, filename = "Outputs/frequencydensitywoodiness585.jpeg",  device = "jpeg", width = 10, height = 7)
+```
+
 
 ## Determining if the species that have drought listed on their Red List assessment are actually more exposed to future drought
 
